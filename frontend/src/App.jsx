@@ -11,7 +11,7 @@ import AboutSection from './components/AboutSection';
 import ContactsSection from './components/ContactsSection';
 import Footer from './components/Footer';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/api';
 const TENANT_ID = '6a65b30e875a7c8ce5664fa2';
 
 function App() {
