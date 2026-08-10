@@ -78,27 +78,27 @@ export default function Hero({ onOpenBooking, onOpenModal, staff = [], getStaffS
 
   // Функция проверки работы мастера
   // ✅ НОВАЯ ВЕРСИЯ (с гарантированным фолбэком на isBarberWorkingOnDate)
-const checkIsWorkingToday = (barber) => {
-  if (!barber) return false;
+  const checkIsWorkingToday = (barber) => {
+    if (!barber) return false;
 
-  const currentDate = new Date();
+    const currentDate = new Date();
 
-  // 1. Проверяем напрямую через алгоритм графика дней недели (MongoDB / workingDays)
-  const isWorkingBySchedule = isBarberWorkingOnDate(barber, currentDate);
+    // 1. Проверяем напрямую через алгоритм графика дней недели (MongoDB / workingDays)
+    const isWorkingBySchedule = isBarberWorkingOnDate(barber, currentDate);
 
-  // 2. Если передана внешняя функция getStaffStatus, учитываем её, но не даем ей сбросить верный график
-  const targetId = barber._id || barber.id;
-  if (typeof getStaffStatus === 'function' && targetId) {
-    const status = getStaffStatus(targetId);
-    if (status && typeof status.isOff !== 'undefined') {
-      // Если передана внешняя функция, мастер работает только если ОБА источника подтверждают
-      return !status.isOff && isWorkingBySchedule;
+    // 2. Если передана внешняя функция getStaffStatus, учитываем её, но не даем ей сбросить верный график
+    const targetId = barber._id || barber.id;
+    if (typeof getStaffStatus === 'function' && targetId) {
+      const status = getStaffStatus(targetId);
+      if (status && typeof status.isOff !== 'undefined') {
+        // Если передана внешняя функция, мастер работает только если ОБА источника подтверждают
+        return !status.isOff && isWorkingBySchedule;
+      }
     }
-  }
 
-  // 3. Главный источник правды — расписание мастера
-  return isWorkingBySchedule;
-};
+    // 3. Главный источник правды — расписание мастера
+    return isWorkingBySchedule;
+  };
 
   const handleBooking = (serviceName = '', staffMember = null, targetDate = null) => {
     if (staffMember && typeof staffMember === 'object') {
@@ -123,48 +123,48 @@ const checkIsWorkingToday = (barber) => {
   const quickServices = ['Haircut', 'Beard & Shaving', 'Combo Package', 'Facial & Care'];
 
   return (
-    <section className="relative overflow-hidden bg-zinc-950 text-zinc-100 py-16 sm:py-24 lg:py-28 border-b border-zinc-800/80 select-none">
+    <section className="relative overflow-hidden bg-zinc-950 text-zinc-100 py-10 sm:py-20 lg:py-28 border-b border-zinc-800/80 select-none">
       
       {/* Свечения на фоне */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[450px] bg-amber-500/10 blur-[160px] pointer-events-none rounded-full animate-pulse duration-1000" />
-      <div className="absolute bottom-10 left-10 w-[350px] h-[350px] bg-indigo-500/5 blur-[120px] pointer-events-none rounded-full" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] sm:w-[700px] h-[300px] sm:h-[450px] bg-amber-500/10 blur-[100px] sm:blur-[160px] pointer-events-none rounded-full animate-pulse duration-1000" />
+      <div className="absolute bottom-10 left-10 w-[200px] sm:w-[350px] h-[200px] sm:h-[350px] bg-indigo-500/5 blur-[80px] sm:blur-[120px] pointer-events-none rounded-full" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-center">
           
           {/* ЛЕВАЯ ЧАСТЬ */}
-          <div className="lg:col-span-7 text-center lg:text-left space-y-6">
+          <div className="lg:col-span-7 text-center lg:text-left space-y-5 sm:space-y-6">
             
             <div className="inline-flex flex-wrap items-center justify-center lg:justify-start gap-2">
-              <div className="inline-flex items-center gap-2 bg-amber-950/50 border border-amber-500/30 px-3.5 py-1.5 rounded-full text-amber-400 text-xs font-bold shadow-inner backdrop-blur-md">
-                <Sparkles size={13} className="text-amber-400 animate-pulse" />
+              <div className="inline-flex items-center gap-2 bg-amber-950/50 border border-amber-500/30 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-amber-400 text-[11px] sm:text-xs font-bold shadow-inner backdrop-blur-md">
+                <Sparkles size={13} className="text-amber-400 animate-pulse shrink-0" />
                 <span>Instant 24/7 Online Booking</span>
               </div>
-              <div className="hidden sm:inline-flex items-center gap-1.5 bg-zinc-900/80 border border-zinc-800 px-3 py-1.5 rounded-full text-zinc-400 text-xs font-medium">
-                <Zap size={12} className="text-amber-500" />
+              <div className="inline-flex items-center gap-1.5 bg-zinc-900/80 border border-zinc-800 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-zinc-400 text-[11px] sm:text-xs font-medium">
+                <Zap size={12} className="text-amber-500 shrink-0" />
                 <span>No Waiting Lines</span>
               </div>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.08]">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.12] sm:leading-[1.08]">
               Premium Grooming & <br className="hidden sm:inline" />
               <span className="bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-transparent">
                 Style for Gentlemen
               </span>
             </h1>
 
-            <p className="text-sm sm:text-base text-zinc-400 font-medium max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+            <p className="text-xs sm:text-base text-zinc-400 font-medium max-w-2xl mx-auto lg:mx-0 leading-relaxed px-2 sm:px-0">
               Select your favorite barber, choose a convenient time slot, and confirm your appointment in under 60 seconds. Zero phone calls required.
             </p>
 
             {/* Быстрый выбор услуг */}
-            <div className="pt-1 flex flex-wrap items-center justify-center lg:justify-start gap-2">
-              <span className="text-xs font-bold text-zinc-500 mr-1">Popular:</span>
+            <div className="pt-1 flex flex-wrap items-center justify-center lg:justify-start gap-1.5 sm:gap-2">
+              <span className="text-[11px] sm:text-xs font-bold text-zinc-500 mr-1 w-full sm:w-auto text-center sm:text-left mb-1 sm:mb-0">Popular:</span>
               {quickServices.map((service, idx) => (
                 <button
                   key={idx}
                   onClick={() => handleBooking(service)}
-                  className="text-xs bg-zinc-900/90 hover:bg-zinc-800 text-zinc-300 hover:text-amber-400 px-3 py-1.5 rounded-lg border border-zinc-800 hover:border-amber-500/40 transition-all cursor-pointer active:scale-95"
+                  className="text-[11px] sm:text-xs bg-zinc-900/90 hover:bg-zinc-800 text-zinc-300 hover:text-amber-400 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg border border-zinc-800 hover:border-amber-500/40 transition-all cursor-pointer active:scale-95"
                 >
                   {service}
                 </button>
@@ -172,10 +172,10 @@ const checkIsWorkingToday = (barber) => {
             </div>
 
             {/* Кнопки */}
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 pt-3">
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 pt-2 sm:pt-3">
               <button
                 onClick={() => handleBooking()}
-                className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 bg-[length:200%_auto] hover:bg-right text-zinc-950 font-black text-sm shadow-xl shadow-amber-500/20 hover:shadow-amber-500/35 transition-all duration-500 active:scale-95 flex items-center justify-center gap-2.5 group cursor-pointer"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 bg-[length:200%_auto] hover:bg-right text-zinc-950 font-black text-xs sm:text-sm shadow-xl shadow-amber-500/20 hover:shadow-amber-500/35 transition-all duration-500 active:scale-95 flex items-center justify-center gap-2.5 group cursor-pointer"
               >
                 <Calendar size={18} />
                 <span>Book Your Visit Now</span>
@@ -184,7 +184,7 @@ const checkIsWorkingToday = (barber) => {
 
               <a
                 href="#services"
-                className="w-full sm:w-auto px-7 py-4 rounded-2xl bg-zinc-900/90 hover:bg-zinc-800 text-zinc-300 hover:text-white font-bold text-sm border border-zinc-800/90 hover:border-zinc-700 transition-all flex items-center justify-center gap-2.5"
+                className="w-full sm:w-auto px-6 sm:px-7 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl bg-zinc-900/90 hover:bg-zinc-800 text-zinc-300 hover:text-white font-bold text-xs sm:text-sm border border-zinc-800/90 hover:border-zinc-700 transition-all flex items-center justify-center gap-2.5"
               >
                 <Scissors size={16} className="text-amber-500" />
                 <span>View Services & Prices</span>
@@ -192,15 +192,15 @@ const checkIsWorkingToday = (barber) => {
             </div>
 
             {/* Отзывы */}
-            <div className="pt-6 border-t border-zinc-900/90 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
-              <div className="flex items-center gap-3">
+            <div className="pt-4 sm:pt-6 border-t border-zinc-900/90 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+              <div className="flex flex-col sm:flex-row items-center gap-2.5 sm:gap-3">
                 <div className="flex -space-x-2.5 overflow-hidden">
                   <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=100" alt="Client" className="inline-block h-8 w-8 rounded-full ring-2 ring-zinc-950 object-cover" />
                   <img src="https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?auto=format&fit=crop&q=80&w=100" alt="Client" className="inline-block h-8 w-8 rounded-full ring-2 ring-zinc-950 object-cover" />
                   <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=100" alt="Client" className="inline-block h-8 w-8 rounded-full ring-2 ring-zinc-950 object-cover" />
                 </div>
-                <div className="text-left">
-                  <div className="flex items-center gap-1">
+                <div className="text-center sm:text-left">
+                  <div className="flex items-center justify-center sm:justify-start gap-1">
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} size={11} className="fill-amber-400 text-amber-400" />
                     ))}
@@ -212,51 +212,51 @@ const checkIsWorkingToday = (barber) => {
               </div>
 
               <div className="flex items-center gap-4 text-xs text-zinc-400 font-medium">
-                <span className="flex items-center gap-1.5"><ShieldCheck size={14} className="text-amber-500" /> Top Quality</span>
-                <span className="flex items-center gap-1.5"><Coffee size={14} className="text-amber-500" /> Free Drink</span>
+                <span className="flex items-center gap-1.5"><ShieldCheck size={14} className="text-amber-500 shrink-0" /> Top Quality</span>
+                <span className="flex items-center gap-1.5"><Coffee size={14} className="text-amber-500 shrink-0" /> Free Drink</span>
               </div>
             </div>
 
           </div>
 
           {/* ПРАВАЯ ЧАСТЬ */}
-          <div className="lg:col-span-5">
+          <div className="lg:col-span-5 mt-4 lg:mt-0">
             <div className="relative mx-auto max-w-md lg:max-w-none">
               
-              <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-tr from-amber-500 via-amber-600 to-indigo-600 opacity-25 blur-xl"></div>
+              <div className="absolute -inset-0.5 rounded-2xl sm:rounded-3xl bg-gradient-to-tr from-amber-500 via-amber-600 to-indigo-600 opacity-25 blur-xl"></div>
               
-              <div className="relative bg-zinc-900/95 border border-zinc-800/90 rounded-3xl p-6 sm:p-7 shadow-2xl backdrop-blur-2xl space-y-6">
+              <div className="relative bg-zinc-900/95 border border-zinc-800/90 rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-2xl backdrop-blur-2xl space-y-4 sm:space-y-6">
                 
                 {/* Статус работы салона */}
-                <div className="flex items-center justify-between pb-4 border-b border-zinc-800/80">
-                  <div className="flex items-center gap-2.5">
-                    <span className="relative flex h-3 w-3">
+                <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-zinc-800/80">
+                  <div className="flex items-center gap-2 sm:gap-2.5">
+                    <span className="relative flex h-2.5 w-2.5 sm:h-3 sm:w-3">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 sm:h-3 sm:w-3 bg-emerald-500"></span>
                     </span>
                     <div>
-                      <span className="text-xs font-black text-emerald-400 uppercase tracking-wider block">Open Today</span>
-                      <span className="text-[10px] text-zinc-500 font-semibold block">09:00 AM – 09:00 PM</span>
+                      <span className="text-[11px] sm:text-xs font-black text-emerald-400 uppercase tracking-wider block">Open Today</span>
+                      <span className="text-[9px] sm:text-[10px] text-zinc-500 font-semibold block">09:00 AM – 09:00 PM</span>
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-xl text-amber-400 text-xs font-extrabold shadow-sm">
-                    <Star size={14} className="fill-amber-400" />
+                  <div className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl text-amber-400 text-[11px] sm:text-xs font-extrabold shadow-sm">
+                    <Star size={13} className="fill-amber-400 shrink-0" />
                     <span>4.95 / 5.0</span>
                   </div>
                 </div>
 
                 {/* Список мастеров */}
                 <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-extrabold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
-                      <UserCheck size={14} className="text-amber-500" />
+                  <div className="flex items-center justify-between mb-2.5 sm:mb-3">
+                    <span className="text-[11px] sm:text-xs font-extrabold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <UserCheck size={14} className="text-amber-500 shrink-0" />
                       Featured Master Barbers:
                     </span>
-                    <span className="text-[10px] text-zinc-500 font-medium">Select to book</span>
+                    <span className="text-[9px] sm:text-[10px] text-zinc-500 font-medium">Select to book</span>
                   </div>
 
-                  <div className="space-y-2.5">
+                  <div className="space-y-2 sm:space-y-2.5">
                     {displayStaff.map((m) => {
                       const name = m.name || getBarberFullName(m);
                       const role = m.role;
@@ -275,14 +275,14 @@ const checkIsWorkingToday = (barber) => {
                             }
                             handleBooking('', m, null);
                           }}
-                          className={`group relative flex items-center justify-between p-3.5 rounded-2xl border transition-all duration-300 overflow-hidden shadow-sm ${
+                          className={`group relative flex items-center justify-between p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all duration-300 overflow-hidden shadow-sm ${
                             isWorkingToday 
                               ? 'bg-zinc-950/80 border-zinc-800/80 hover:border-amber-500/50 hover:bg-zinc-900/90 hover:translate-x-1 border-l-2 hover:border-l-amber-500 cursor-pointer' 
                               : 'bg-zinc-950/40 border-zinc-900/60 opacity-40 cursor-not-allowed select-none' 
                           }`}
                         >
-                          <div className="flex items-center gap-3">
-                            <div className={`w-11 h-11 rounded-xl font-black flex items-center justify-center text-xs border transition-all shrink-0 ${
+                          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 pr-2">
+                            <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl font-black flex items-center justify-center text-[10px] sm:text-xs border transition-all shrink-0 ${
                               isWorkingToday 
                                 ? 'bg-gradient-to-br from-amber-500/20 via-zinc-900 to-amber-950 text-amber-400 border-amber-500/30 group-hover:border-amber-500/60 group-hover:ring-2 group-hover:ring-amber-500/20' 
                                 : 'bg-zinc-900/60 text-zinc-600 border-zinc-800/40'
@@ -290,26 +290,26 @@ const checkIsWorkingToday = (barber) => {
                               {name.split(' ').map(n => n[0]).join('')}
                             </div>
 
-                            <div className="space-y-0.5">
-                              <div className="flex items-center gap-1.5">
-                                <span className={`text-xs font-bold transition-colors ${isWorkingToday ? 'text-white group-hover:text-amber-400' : 'text-zinc-500'}`}>
+                            <div className="space-y-0.5 min-w-0">
+                              <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap sm:flex-nowrap">
+                                <span className={`text-xs font-bold transition-colors truncate ${isWorkingToday ? 'text-white group-hover:text-amber-400' : 'text-zinc-500'}`}>
                                   {name}
                                 </span>
                                 {isWorkingToday ? (
                                   <CheckCircle2 size={13} className="text-amber-500 shrink-0" />
                                 ) : (
-                                  <span className="text-[9px] font-black bg-rose-950/80 text-rose-300 px-1.5 py-0.5 rounded border border-rose-800/40 uppercase tracking-wider">
+                                  <span className="text-[8px] sm:text-[9px] font-black bg-rose-950/80 text-rose-300 px-1 py-0.5 rounded border border-rose-800/40 uppercase tracking-wider shrink-0">
                                     Off Today
                                   </span>
                                 )}
                               </div>
 
-                              <div className="flex items-center gap-1.5 text-[10px]">
-                                <span className={`font-extrabold uppercase tracking-wider ${isWorkingToday ? 'text-amber-500' : 'text-zinc-600'}`}>
+                              <div className="flex items-center gap-1 sm:gap-1.5 text-[9px] sm:text-[10px] min-w-0">
+                                <span className={`font-extrabold uppercase tracking-wider shrink-0 ${isWorkingToday ? 'text-amber-500' : 'text-zinc-600'}`}>
                                   {role}
                                 </span>
-                                <span className="text-zinc-600">•</span>
-                                <span className="text-zinc-500 font-medium truncate max-w-[120px] sm:max-w-[150px]">
+                                <span className="text-zinc-600 shrink-0">•</span>
+                                <span className="text-zinc-500 font-medium truncate">
                                   {spec}
                                 </span>
                               </div>
@@ -317,17 +317,17 @@ const checkIsWorkingToday = (barber) => {
                           </div>
 
                           <div className="text-right shrink-0">
-                            <div className={`inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-1 rounded-lg border mb-0.5 ${
+                            <div className={`inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-extrabold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border mb-0.5 ${
                               isWorkingToday 
                                 ? 'text-amber-400 bg-amber-500/10 border-amber-500/20' 
                                 : 'text-zinc-500 bg-zinc-900/40 border-zinc-800/50'
                             }`}>
-                              <Star size={11} className={isWorkingToday ? "fill-amber-400" : "fill-zinc-600 text-zinc-600"} />
+                              <Star size={10} className={isWorkingToday ? "fill-amber-400" : "fill-zinc-600 text-zinc-600"} />
                               <span>{rating}</span>
                             </div>
 
                             {isWorkingToday && (
-                              <span className="text-[10px] text-amber-400 font-bold block opacity-0 group-hover:opacity-100 transition-all transform translate-x-1 group-hover:translate-x-0">
+                              <span className="text-[9px] sm:text-[10px] text-amber-400 font-bold block opacity-0 group-hover:opacity-100 transition-all transform translate-x-1 group-hover:translate-x-0">
                                 Book →
                               </span>
                             )}
@@ -339,21 +339,21 @@ const checkIsWorkingToday = (barber) => {
                 </div>
 
                 {/* Адрес и контакты */}
-                <div className="pt-2 grid grid-cols-2 gap-2 text-xs text-zinc-400 border-t border-zinc-800/60">
-                  <div className="flex items-center gap-2 bg-zinc-950/50 p-2.5 rounded-xl border border-zinc-800/60 hover:border-zinc-700 transition-colors">
+                <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-zinc-400 border-t border-zinc-800/60">
+                  <div className="flex items-center gap-2 bg-zinc-950/50 p-2 sm:p-2.5 rounded-xl border border-zinc-800/60 hover:border-zinc-700 transition-colors min-w-0">
                     <MapPin size={15} className="text-amber-500 shrink-0" />
-                    <span className="text-[11px] font-medium truncate">42 Central Avenue</span>
+                    <span className="text-[10px] sm:text-[11px] font-medium truncate">42 Central Avenue</span>
                   </div>
-                  <div className="flex items-center gap-2 bg-zinc-950/50 p-2.5 rounded-xl border border-zinc-800/60 hover:border-zinc-700 transition-colors">
+                  <div className="flex items-center gap-2 bg-zinc-950/50 p-2 sm:p-2.5 rounded-xl border border-zinc-800/60 hover:border-zinc-700 transition-colors min-w-0">
                     <Phone size={15} className="text-amber-500 shrink-0" />
-                    <span className="text-[11px] font-medium truncate">+1 (555) 000-0000</span>
+                    <span className="text-[10px] sm:text-[11px] font-medium truncate">+1 (555) 000-0000</span>
                   </div>
                 </div>
 
                 {/* Главная кнопка */}
                 <button
                   onClick={() => handleBooking()}
-                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:brightness-110 text-zinc-950 font-black text-xs transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-amber-500/15 active:scale-[0.98] cursor-pointer"
+                  className="w-full py-3 sm:py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:brightness-110 text-zinc-950 font-black text-xs transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-amber-500/15 active:scale-[0.98] cursor-pointer"
                 >
                   <Clock size={15} />
                   <span>Check Available Time Slots</span>
