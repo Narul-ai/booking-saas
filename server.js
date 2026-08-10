@@ -103,13 +103,22 @@ const startServer = async () => {
   try {
     // Подключаемся к базе с дополнительными опциями стабильности
     const conn = await mongoose.connect(MONGO_URI, {
-      serverSelectionTimeoutMS: 5000, // Таймаут на поиск сервера 5 сек (чтобы не висело бесконечно)
+      serverSelectionTimeoutMS: 5000, // Таймаут на поиск сервера 5 сек
       socketTimeoutMS: 45000,         // Закрывать сокеты после 45 сек неактивности
     });
 
     console.log(`✅ Successfully connected to MongoDB Database.`);
     console.log(`💻 Host: ${conn.connection.host}`);
     console.log(`🗄️ Database Name: ${conn.connection.name}`);
+
+    // 🔧 Автоматическое удаление старого индекса telegramChatId_1
+    try {
+      await mongoose.connection.collection('users').dropIndex('telegramChatId_1');
+      console.log('🗑️ Successfully dropped old telegramChatId_1 index.');
+    } catch (indexErr) {
+      // Игнорируем ошибку, если индекс уже удален или отсутствует
+      console.log('ℹ️ Index telegramChatId_1 check completed (already clean).');
+    }
 
     // Запуск начальной инициализации
     await initSuperAdmin();

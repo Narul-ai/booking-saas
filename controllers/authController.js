@@ -25,13 +25,16 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Password is auto-hashed via pre('save') hook in User model
-    const newUser = await User.create({
+    // Создаем объект пользователя, гарантируя отсутствие telegramChatId со значением null
+    const userData = {
       name: name.trim(),
       email: normalizedEmail,
       password,
       role: 'client'
-    });
+    };
+
+    // Password is auto-hashed via pre('save') hook in User model
+    const newUser = await User.create(userData);
 
     const token = jwt.sign(
       { id: newUser._id, role: newUser.role },

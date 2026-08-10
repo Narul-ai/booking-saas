@@ -91,9 +91,8 @@ const userSchema = new mongoose.Schema(
     },
    telegramChatId: { 
   type: String, 
-  default: null,
   unique: true,
-  sparse: true // ⚠️ Обязательно! Иначе MongoDB выдаст ошибку E11000 при создании ВТОРОГО пользователя с null
+  sparse: true 
 },
     telegramUsername: {
       type: String,
