@@ -13,7 +13,9 @@ import {
   CheckCircle2,
   ShieldCheck,
   Check,
-  RefreshCw
+  RefreshCw,
+  ArrowLeft,
+  KeyRound
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -21,6 +23,9 @@ const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/ap
 
 export default function AuthModal({ isOpen, onClose, onSuccess }) {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -60,6 +65,41 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
 
   const strengthScore = getPasswordStrength();
 
+  const handleForgotSubmit = async (e) => {
+  e.preventDefault();
+  setError('');
+
+  // 1. Проверка на валидность Email на фронтенде
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    setError('Please enter a valid email address.');
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    // 2. Реальный запрос к бэкенду
+    await axios.post(`${API_URL}/auth/forgot-password`, { email });
+    
+    // Переключаем в состояние "Инструкции отправлены"
+    setForgotSent(true);
+  } catch (err) {
+    console.error('Forgot Password Error:', err);
+    
+    const status = err.response?.status;
+    const serverMsg = err.response?.data?.message;
+
+    if (status === 429) {
+      setError('Too many requests. Please wait a few minutes before trying again.');
+    } else {
+      setError(serverMsg || 'Failed to send reset email. Please try again later.');
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -82,13 +122,16 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
       const token = res.data?.token || res.data?.accessToken || res.data?.jwt;
       const user = res.data?.user || (res.data?.token ? res.data : null);
 
+      // Запоминание пользователя: localStorage или sessionStorage
+      const targetStorage = rememberMe ? localStorage : sessionStorage;
+
       if (token) {
-        localStorage.setItem('token', token);
+        targetStorage.setItem('token', token);
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       }
 
       if (user) {
-        localStorage.setItem('user', JSON.stringify(user));
+        targetStorage.setItem('user', JSON.stringify(user));
       }
 
       setIsSuccess(true);
@@ -100,6 +143,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
         setPassword('');
         setName('');
         setIsSuccess(false);
+        setIsForgotPassword(false);
+        setForgotSent(false);
         onClose();
       }, 1000);
 
@@ -132,6 +177,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
 
   const handleToggleMode = () => {
     setIsSignUp(!isSignUp);
+    setIsForgotPassword(false);
+    setForgotSent(false);
     setError('');
     setSuggestSignIn(false);
     setShowPassword(false);
@@ -139,21 +186,21 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
 
   return (
     <div 
-      className="fixed inset-0 bg-zinc-950/80 backdrop-blur-xl flex items-center justify-center p-4 z-[100] transition-all duration-300 animate-in fade-in"
+      className="fixed inset-0 bg-zinc-950/80 backdrop-blur-2xl flex items-center justify-center p-4 z-[100] transition-all duration-300 animate-in fade-in"
       onClick={onClose}
     >
       <div 
-        className="bg-zinc-900 border border-zinc-800/90 w-full max-w-md rounded-3xl p-6 sm:p-8 relative shadow-2xl shadow-amber-500/5 transition-all transform animate-in zoom-in-95 duration-200 overflow-hidden"
+        className="bg-gradient-to-b from-zinc-900 via-zinc-900/95 to-zinc-950 border border-zinc-800/80 w-full max-w-md rounded-3xl p-6 sm:p-8 relative shadow-2xl shadow-amber-500/10 transition-all transform animate-in zoom-in-95 duration-300 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Glow Effects */}
-        <div className="absolute -top-24 -right-24 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+        {/* MongoDB Style Ambient Glow Background */}
+        <div className="absolute -top-28 -right-28 w-56 h-56 bg-gradient-to-br from-amber-500/20 to-amber-600/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-28 -left-28 w-56 h-56 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Close Button */}
         <button 
           onClick={onClose} 
-          className="absolute top-5 right-5 w-8 h-8 rounded-xl bg-zinc-800/60 hover:bg-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center border border-zinc-700/50 transition-all duration-200 active:scale-95 cursor-pointer z-10"
+          className="absolute top-5 right-5 w-8 h-8 rounded-xl bg-zinc-800/50 hover:bg-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center border border-zinc-700/50 transition-all duration-200 active:scale-90 cursor-pointer z-10 hover:border-zinc-600"
           aria-label="Close modal"
         >
           <X size={16} />
@@ -162,15 +209,81 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
         {/* Success View */}
         {isSuccess ? (
           <div className="py-12 flex flex-col items-center justify-center text-center animate-in zoom-in-90 duration-300">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/10">
+            <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mb-4 shadow-xl shadow-emerald-500/10 animate-bounce">
               <CheckCircle2 size={32} />
             </div>
-            <h3 className="text-xl font-black text-white tracking-tight">
+            <h3 className="text-2xl font-black text-white tracking-tight">
               {isSignUp ? 'Account Created!' : 'Authenticated!'}
             </h3>
-            <p className="text-xs font-semibold text-zinc-400 mt-1">
-              Welcome to TopGun Barbershop
+            <p className="text-xs font-semibold text-zinc-400 mt-1.5">
+              Welcome back to your workspace
             </p>
+          </div>
+        ) : isForgotPassword ? (
+          /* Forgot Password View */
+          <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+            <button
+              type="button"
+              onClick={() => { setIsForgotPassword(false); setForgotSent(false); setError(''); }}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-400 hover:text-amber-400 transition-colors mb-4 cursor-pointer"
+            >
+              <ArrowLeft size={14} /> Back to Sign In
+            </button>
+
+            <div className="mb-6 text-left">
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20 mb-3 shadow-sm">
+                <KeyRound size={12} className="text-amber-400" /> Security
+              </span>
+              <h2 className="text-2xl font-black text-white tracking-tight">
+                Reset Password
+              </h2>
+              <p className="text-xs text-zinc-400 font-medium mt-1.5 leading-relaxed">
+                Enter your account email address and we'll send you instructions to reset your password.
+              </p>
+            </div>
+
+            {forgotSent ? (
+              <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-center space-y-2 animate-in zoom-in-95 duration-200">
+                <div className="w-10 h-10 bg-emerald-500/20 rounded-xl text-emerald-400 flex items-center justify-center mx-auto mb-2">
+                  <Mail size={20} />
+                </div>
+                <h4 className="text-sm font-bold text-white">Instructions Sent!</h4>
+                <p className="text-xs text-zinc-400">
+                  If an account exists for <span className="text-amber-400 font-semibold">{email}</span>, you will receive a reset email shortly.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setIsForgotPassword(false)}
+                  className="mt-3 text-xs font-bold text-amber-400 hover:underline cursor-pointer"
+                >
+                  Return to Sign In
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleForgotSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-[10px] font-extrabold uppercase tracking-widest text-zinc-400 mb-1.5 flex items-center gap-1.5">
+                    <Mail size={12} className="text-amber-500" /> Registered Email
+                  </label>
+                  <input 
+                    type="email" 
+                    placeholder="alex@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="w-full bg-zinc-950/80 border border-zinc-800 rounded-2xl px-4 py-3 text-sm text-white font-medium placeholder:text-zinc-600 focus:bg-zinc-950 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500/80 transition-all duration-200"
+                  />
+                </div>
+
+                <button 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 disabled:opacity-50 text-zinc-950 font-black py-3.5 rounded-2xl shadow-lg shadow-amber-500/20 hover:shadow-amber-500/35 transition-all duration-200 active:scale-[0.98] text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {loading ? <Loader2 size={18} className="animate-spin text-zinc-950" /> : <span>Send Reset Link</span>}
+                </button>
+              </form>
+            )}
           </div>
         ) : (
           <>
@@ -223,7 +336,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    className="w-full bg-zinc-950/80 border border-zinc-800 rounded-2xl px-4 py-3 text-sm text-white font-medium placeholder:text-zinc-600 focus:bg-zinc-950 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500/60 transition-all duration-200"
+                    className="w-full bg-zinc-950/80 border border-zinc-800 rounded-2xl px-4 py-3 text-sm text-white font-medium placeholder:text-zinc-600 focus:bg-zinc-950 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500/80 transition-all duration-200"
                   />
                 </div>
               )}
@@ -238,7 +351,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full bg-zinc-950/80 border border-zinc-800 rounded-2xl px-4 py-3 text-sm text-white font-medium placeholder:text-zinc-600 focus:bg-zinc-950 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500/60 transition-all duration-200"
+                  className="w-full bg-zinc-950/80 border border-zinc-800 rounded-2xl px-4 py-3 text-sm text-white font-medium placeholder:text-zinc-600 focus:bg-zinc-950 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500/80 transition-all duration-200"
                 />
               </div>
 
@@ -248,9 +361,13 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
                     <Lock size={12} className="text-amber-500" /> Password
                   </label>
                   {!isSignUp && (
-                    <a href="#" className="text-[11px] font-bold text-amber-400 hover:text-amber-300 transition-colors">
+                    <button 
+                      type="button" 
+                      onClick={() => { setIsForgotPassword(true); setError(''); }} 
+                      className="text-[11px] font-bold text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
+                    >
                       Forgot?
-                    </a>
+                    </button>
                   )}
                 </div>
                 
@@ -261,7 +378,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full bg-zinc-950/80 border border-zinc-800 rounded-2xl pl-4 pr-11 py-3 text-sm text-white font-medium placeholder:text-zinc-600 focus:bg-zinc-950 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500/60 transition-all duration-200"
+                    className="w-full bg-zinc-950/80 border border-zinc-800 rounded-2xl pl-4 pr-11 py-3 text-sm text-white font-medium placeholder:text-zinc-600 focus:bg-zinc-950 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500/80 transition-all duration-200"
                   />
                   <button
                     type="button"
@@ -276,9 +393,9 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
                 {isSignUp && password.length > 0 && (
                   <div className="mt-2.5 space-y-2 animate-in fade-in duration-200">
                     <div className="flex gap-1.5 h-1">
-                      <div className={`h-full flex-1 rounded-full transition-all duration-300 ${strengthScore >= 1 ? 'bg-amber-500' : 'bg-zinc-800'}`} />
-                      <div className={`h-full flex-1 rounded-full transition-all duration-300 ${strengthScore >= 2 ? 'bg-amber-500' : 'bg-zinc-800'}`} />
-                      <div className={`h-full flex-1 rounded-full transition-all duration-300 ${strengthScore >= 3 ? 'bg-emerald-500' : 'bg-zinc-800'}`} />
+                      <div className={`h-full flex-1 rounded-full transition-all duration-300 ${strengthScore >= 1 ? 'bg-amber-500 shadow-sm shadow-amber-500/50' : 'bg-zinc-800'}`} />
+                      <div className={`h-full flex-1 rounded-full transition-all duration-300 ${strengthScore >= 2 ? 'bg-amber-500 shadow-sm shadow-amber-500/50' : 'bg-zinc-800'}`} />
+                      <div className={`h-full flex-1 rounded-full transition-all duration-300 ${strengthScore >= 3 ? 'bg-emerald-500 shadow-sm shadow-emerald-500/50' : 'bg-zinc-800'}`} />
                     </div>
 
                     <div className="flex items-center gap-3 text-[10px] font-bold text-zinc-400">
@@ -298,15 +415,17 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
 
               {/* Remember Me Checkbox (Sign-In Only) */}
               {!isSignUp && (
-                <div className="flex items-center gap-2 pt-1">
-                  <input 
-                    type="checkbox" 
-                    id="remember" 
-                    checked={rememberMe} 
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 rounded bg-zinc-950 border-zinc-800 text-amber-500 focus:ring-amber-500/20 accent-amber-500 cursor-pointer"
-                  />
-                  <label htmlFor="remember" className="text-xs font-semibold text-zinc-400 cursor-pointer select-none">
+                <div className="flex items-center gap-2.5 pt-1">
+                  <div className="relative flex items-center">
+                    <input 
+                      type="checkbox" 
+                      id="remember" 
+                      checked={rememberMe} 
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="peer w-4 h-4 rounded bg-zinc-950 border-zinc-700 text-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:ring-offset-0 focus:outline-none accent-amber-500 cursor-pointer transition-all"
+                    />
+                  </div>
+                  <label htmlFor="remember" className="text-xs font-medium text-zinc-400 hover:text-zinc-300 cursor-pointer select-none transition-colors">
                     Remember me on this device
                   </label>
                 </div>

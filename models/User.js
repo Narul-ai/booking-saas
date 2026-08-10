@@ -74,6 +74,18 @@ const userSchema = new mongoose.Schema(
       minlength: [8, 'Password must be at least 8 characters long'],
       select: false // Never return password field in queries by default
     },
+    // === ДОБАВЛЕНЫ ПОЛЯ ДЛЯ СБРОСА ПАРОЛЯ ===
+    resetPasswordToken: {
+      type: String,
+      default: null,
+      select: false // Чтобы хэш токена случайно не утекал в обычных запросах
+    },
+    resetPasswordExpire: {
+      type: Date,
+      default: null,
+      select: false
+    },
+    // =========================================
     phone: { 
       type: String, 
       required: false, 
@@ -89,11 +101,11 @@ const userSchema = new mongoose.Schema(
       default: 'client',
       index: true
     },
-   telegramChatId: { 
-  type: String, 
-  unique: true,
-  sparse: true 
-},
+    telegramChatId: { 
+      type: String, 
+      unique: true,
+      sparse: true 
+    },
     telegramUsername: {
       type: String,
       default: null,
@@ -121,6 +133,8 @@ const userSchema = new mongoose.Schema(
       virtuals: true,
       transform: function (doc, ret) {
         delete ret.password;
+        delete ret.resetPasswordToken;
+        delete ret.resetPasswordExpire;
         delete ret.__v;
         return ret;
       }
