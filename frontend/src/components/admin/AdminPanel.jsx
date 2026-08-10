@@ -19,7 +19,7 @@ import BookingsTab from './BookingsTab';
 import ServicesTab from './ServicesTab';
 import StaffTab from './StaffTab';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export default function AdminPanel({ tenantId, services = [], staff = [], onRefresh }) {
   const [bookings, setBookings] = useState([]);

@@ -17,7 +17,7 @@ import {
   Check
 } from 'lucide-react';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const BOT_USERNAME = 'topgun_booking_bot'; // Имя твоего Telegram бота
 
 export default function ClientProfile({ user, tenant, onClose, onOpenRescheduleModal }) {
