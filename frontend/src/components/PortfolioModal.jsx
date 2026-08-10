@@ -15,14 +15,6 @@ const CUSTOM_BARBER_PORTFOLIOS = [
       duration: '60m',
       img: 'https://images.pexels.com/photos/19140177/pexels-photo-19140177.jpeg?auto=compress&cs=tinysrgb&w=800',
       description: 'Precision cut combined with beard sculpting and hot towel treatment.'
-    },{
-      id: 'b1-w1',
-      title: 'VIP Executive Experience',
-      category: 'Signature',
-      price: '$75',
-      duration: '90m',
-      img: 'https://images.pexels.com/photos/7447131/pexels-photo-7447131.jpeg?auto=compress&cs=tinysrgb&w=800',
-      description: 'The ultimate signature experience. Precision cut, full beard detailing, scalp massage, and facial revival.'
     },
     {
       id: 'b1-w2',

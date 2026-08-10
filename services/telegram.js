@@ -6,10 +6,13 @@ const User = require('../models/User');
 const token = process.env.TELEGRAM_BOT_TOKEN;
 
 if (!token) {
-  console.error('❌ TELEGRAM_BOT_TOKEN не найден в .env');
+  console.error('❌ TELEGRAM_BOT_TOKEN not found in .env');
 }
 
 process.env.NTBA_FIX_319 = 1;
+
+// Define default business timezone for date & time formatting
+const BUSINESS_TIMEZONE = process.env.TIMEZONE || 'Asia/Almaty';
 
 const bot = new TelegramBot(token, {
   polling: {
@@ -27,9 +30,9 @@ const bot = new TelegramBot(token, {
 
 bot.on('polling_error', () => {});
 
-console.log('🚀 Telegram бот (Pro версии) успешно запущен!');
+console.log('🚀 Telegram Bot (Pro Version) successfully started!');
 
-// Хелпер безопасной отправки сообщений
+// Helper for safe message sending
 async function safeSendMessage(chatId, text, options = {}, retries = 3) {
   for (let i = 0; i < retries; i++) {
     try {
@@ -41,39 +44,39 @@ async function safeSendMessage(chatId, text, options = {}, retries = 3) {
   }
 }
 
-// --- ГЛАВНОЕ МЕНЮ ---
+// --- MAIN MENU ---
 const getMainMenu = () => ({
   reply_markup: {
     keyboard: [
-      [{ text: '📅 Записи на сегодня' }, { text: '📆 Записи на завтра' }],
-      [{ text: '📊 Финансы и отчеты' }, { text: '🆔 Узнать мой Chat ID' }]
+      [{ text: "📅 Today's Bookings" }, { text: "📆 Tomorrow's Bookings" }],
+      [{ text: '📊 Financial Report' }, { text: '🆔 Get My Chat ID' }]
     ],
     resize_keyboard: true
   }
 });
 
-// Хелпер генерации инлайн-кнопок для управления записью
+// Helper generating inline buttons for booking status management
 const getBookingStatusButtons = (bookingId, currentStatus) => {
   const buttons = [];
   
   if (currentStatus !== 'confirmed') {
-    buttons.push({ text: '✅ Подтвердить', callback_data: `status_confirmed_${bookingId}` });
+    buttons.push({ text: '✅ Confirm', callback_data: `status_confirmed_${bookingId}` });
   }
   if (currentStatus !== 'completed') {
-    buttons.push({ text: '🎉 Завершить', callback_data: `status_completed_${bookingId}` });
+    buttons.push({ text: '🎉 Complete', callback_data: `status_completed_${bookingId}` });
   }
   if (currentStatus !== 'cancelled') {
-    buttons.push({ text: '❌ Отменить', callback_data: `status_cancelled_${bookingId}` });
+    buttons.push({ text: '❌ Cancel', callback_data: `status_cancelled_${bookingId}` });
   }
 
   return { inline_keyboard: [buttons] };
 };
 
-// --- 1. КОМАНДА /start ---
+// --- 1. COMMAND /start ---
 bot.onText(/\/start(?:\s+(.+))?/, async (msg, match) => {
   try {
     const chatId = msg.chat.id.toString();
-    const firstName = msg.from.first_name || 'Пользователь';
+    const firstName = msg.from.first_name || 'User';
     const startParam = match[1];
 
     if (startParam) {
@@ -83,11 +86,11 @@ bot.onText(/\/start(?:\s+(.+))?/, async (msg, match) => {
         await user.save();
 
         const welcomeText = 
-          `✨ <b>Аккаунт успешно привязан!</b>\n` +
+          `✨ <b>Account successfully linked!</b>\n` +
           `━━━━━━━━━━━━━━━━━━━\n` +
-          `👤 <b>Пользователь:</b> ${user.name}\n` +
-          `💼 <b>Роль в системе:</b> <code>${user.role.toUpperCase()}</code>\n\n` +
-          `🔔 <i>Теперь все уведомления о новых бронированиях и изменениях будут поступать в этот чат.</i>`;
+          `👤 <b>User:</b> ${user.name}\n` +
+          `💼 <b>Role:</b> <code>${user.role.toUpperCase()}</code>\n\n` +
+          `🔔 <i>You will now receive all notifications about new bookings and updates in this chat.</i>`;
 
         await safeSendMessage(chatId, welcomeText, { parse_mode: 'HTML', ...getMainMenu() });
         return;
@@ -95,18 +98,18 @@ bot.onText(/\/start(?:\s+(.+))?/, async (msg, match) => {
     }
 
     const startText = 
-      `👋 <b>Здравствуйте, ${firstName}!</b>\n` +
+      `👋 <b>Welcome, ${firstName}!</b>\n` +
       `━━━━━━━━━━━━━━━━━━━\n` +
-      `Добро пожаловать в панель управления <b>TopGun Barbershop</b> 💈\n\n` +
-      `Выберите нужный раздел в интерактивном меню ниже для работы с записями и аналитикой.`;
+      `Welcome to the <b>TopGun Barbershop</b> management panel 💈\n\n` +
+      `Select a section from the interactive menu below to manage appointments and analytics.`;
 
     await safeSendMessage(chatId, startText, { parse_mode: 'HTML', ...getMainMenu() });
   } catch (err) {
-    console.error('Ошибка в /start:', err.message);
+    console.error('Error in /start:', err.message);
   }
 });
 
-// --- 2. ОБРАБОТКА КНОПЕК И ТЕКСТОВЫХ ЗАПРОСОВ ---
+// --- 2. MESSAGE AND TEXT COMMAND HANDLER ---
 bot.on('message', async (msg) => {
   try {
     const chatId = msg.chat.id.toString();
@@ -114,19 +117,19 @@ bot.on('message', async (msg) => {
 
     if (!text || text.startsWith('/')) return;
 
-    if (text === '🆔 Узнать мой Chat ID') {
+    if (text === '🆔 Get My Chat ID') {
       const idText = 
-        `🔑 <b>Ваш идентификатор Telegram:</b>\n` +
+        `🔑 <b>Your Telegram Chat ID:</b>\n` +
         `<code>${chatId}</code>\n\n` +
-        `<i>Используйте этот ID для настройки прав доступа в панели администратора.</i>`;
+        `<i>Use this ID to set up access permissions in the admin panel.</i>`;
       return await safeSendMessage(chatId, idText, { parse_mode: 'HTML' });
     }
 
     const currentUser = await User.findOne({ telegramChatId: chatId }).lean();
 
-    // Записи на Сегодня / Завтра (Универсальный расчет UTC)
-    if (text === '📅 Записи на сегодня' || text === '📆 Записи на завтра') {
-      const isToday = text === '📅 Записи на сегодня';
+    // Bookings for Today / Tomorrow
+    if (text === "📅 Today's Bookings" || text === "📆 Tomorrow's Bookings") {
+      const isToday = text === "📅 Today's Bookings";
 
       const now = new Date();
       const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + (isToday ? 0 : 1), 0, 0, 0, 0));
@@ -149,32 +152,39 @@ bot.on('message', async (msg) => {
       if (!bookings || bookings.length === 0) {
         return await safeSendMessage(
           chatId, 
-          `☕ <b>Записи не найдены</b>\nНа ${isToday ? 'сегодня' : 'завтра'} активных бронирований пока нет.`,
+          `☕ <b>No bookings found</b>\nThere are no active bookings for ${isToday ? 'today' : 'tomorrow'}.`,
           { parse_mode: 'HTML' }
         );
       }
 
-      let message = `📋 <b>Расписание на ${isToday ? 'сегодня' : 'завтра'}:</b>\n━━━━━━━━━━━━━━━━━━━\n\n`;
+      let message = `📋 <b>Schedule for ${isToday ? 'Today' : 'Tomorrow'}:</b>\n━━━━━━━━━━━━━━━━━━━\n\n`;
 
       bookings.forEach((b, index) => {
-        const clientName = b.clientId?.name || 'Клиент';
-        const clientPhone = b.clientId?.phone || 'Не указан';
-        const serviceName = b.serviceId?.title || b.serviceId?.name || 'Услуга';
-        const staffName = b.staffId?.name || 'Мастер';
-        const time = new Date(b.startDatetime).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
+        const clientName = b.clientId?.name || 'Client';
+        const clientPhone = b.clientId?.phone || 'Not provided';
+        const serviceName = b.serviceId?.title || b.serviceId?.name || 'Service';
+        const staffName = b.staffId?.name || 'Barber';
+        
+        // Correct timezone conversion from UTC to local business timezone
+        const time = new Date(b.startDatetime).toLocaleTimeString('en-US', { 
+          hour: '2-digit', 
+          minute: '2-digit', 
+          hour12: false, 
+          timeZone: BUSINESS_TIMEZONE 
+        });
 
         message += `<b>${index + 1}. ⏰ ${time}</b> — <b>${clientName}</b>\n`;
         message += `   ✂️ <i>${serviceName}</i>\n`;
-        message += `   💈 Мастер: <b>${staffName}</b>\n`;
-        message += `   📞 Тел: <code>${clientPhone}</code>\n`;
+        message += `   💈 Barber: <b>${staffName}</b>\n`;
+        message += `   📞 Phone: <code>${clientPhone}</code>\n`;
         message += `───────────────\n`;
       });
 
       return await safeSendMessage(chatId, message, { parse_mode: 'HTML' });
     }
 
-    // 📊 Финансы и отчеты (Универсальный расчет UTC)
-    if (text === '📊 Финансы и отчеты') {
+    // 📊 Financial Report
+    if (text === '📊 Financial Report') {
       const now = new Date();
       const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
       const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0));
@@ -193,20 +203,20 @@ bot.on('message', async (msg) => {
       const monthRevenue = monthBookings.reduce((sum, b) => sum + (b.serviceId?.price || 0), 0);
 
       const reportMessage =
-        `📊 <b>Финансовый отчёт TopGun</b>\n` +
+        `📊 <b>TopGun Financial Report</b>\n` +
         `━━━━━━━━━━━━━━━━━━━\n\n` +
-        `📈 <b>За сегодня:</b>\n` +
-        `  • Завершено визитов: <code>${todayBookings.length}</code>\n` +
-        `  • Выручка: <b>$${todayRevenue.toLocaleString()}</b>\n\n` +
-        `📅 <b>За текущий месяц:</b>\n` +
-        `  • Завершено визитов: <code>${monthBookings.length}</code>\n` +
-        `  • Выручка: <b>$${monthRevenue.toLocaleString()}</b>\n` +
+        `📈 <b>Today:</b>\n` +
+        `  • Completed Visits: <code>${todayBookings.length}</code>\n` +
+        `  • Revenue: <b>$${todayRevenue.toLocaleString()}</b>\n\n` +
+        `📅 <b>This Month:</b>\n` +
+        `  • Completed Visits: <code>${monthBookings.length}</code>\n` +
+        `  • Revenue: <b>$${monthRevenue.toLocaleString()}</b>\n` +
         `━━━━━━━━━━━━━━━━━━━`;
 
       return await safeSendMessage(chatId, reportMessage, { parse_mode: 'HTML' });
     }
 
-    // 🔍 Поиск и привязка по номеру телефона
+    // 🔍 Search and link account by phone number
     const cleanPhone = text.replace(/\D/g, '');
     if (cleanPhone.length >= 7) {
       const targetUser = await User.findOne({ phone: new RegExp(cleanPhone.slice(-10)) });
@@ -216,7 +226,7 @@ bot.on('message', async (msg) => {
         await targetUser.save();
         await safeSendMessage(
           chatId,
-          `✅ <b>Аккаунт успешно привязан!</b>\nПользователь: <b>${targetUser.name}</b> (<code>${targetUser.role}</code>)`,
+          `✅ <b>Account successfully linked!</b>\nUser: <b>${targetUser.name}</b> (<code>${targetUser.role}</code>)`,
           { parse_mode: 'HTML' }
         );
       }
@@ -224,7 +234,7 @@ bot.on('message', async (msg) => {
       const clients = await User.find({ phone: new RegExp(cleanPhone, 'i') }).lean();
 
       if (!clients || clients.length === 0) {
-        return await safeSendMessage(chatId, `🔍 Пользователь с номером <code>${text}</code> не найден.`, { parse_mode: 'HTML' });
+        return await safeSendMessage(chatId, `🔍 User with phone number <code>${text}</code> not found.`, { parse_mode: 'HTML' });
       }
 
       const clientIds = clients.map((c) => c._id);
@@ -235,50 +245,50 @@ bot.on('message', async (msg) => {
         .lean();
 
       if (clientBookings.length === 0) {
-        return await safeSendMessage(chatId, `👤 Клиент <b>${clients[0].name}</b> найден, но история записей пуста.`, { parse_mode: 'HTML' });
+        return await safeSendMessage(chatId, `👤 Client <b>${clients[0].name}</b> found, but booking history is empty.`, { parse_mode: 'HTML' });
       }
 
       let historyMessage = 
-        `🔎 <b>История визитов клиента</b>\n` +
+        `🔎 <b>Client Visit History</b>\n` +
         `👤 <b>${clients[0].name}</b> (<code>${clients[0].phone}</code>)\n` +
         `━━━━━━━━━━━━━━━━━━━\n\n`;
 
       clientBookings.forEach((b, i) => {
-        const dateStr = new Date(b.startDatetime).toLocaleDateString('ru-RU', { timeZone: 'UTC' });
-        const timeStr = new Date(b.startDatetime).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
-        const serviceName = b.serviceId?.title || 'Услуга';
-        const statusMap = { confirmed: '✅ Подтверждена', completed: '🏁 Завершена', cancelled: '❌ Отменена' };
+        const dateStr = new Date(b.startDatetime).toLocaleDateString('en-US', { timeZone: BUSINESS_TIMEZONE });
+        const timeStr = new Date(b.startDatetime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: BUSINESS_TIMEZONE });
+        const serviceName = b.serviceId?.title || 'Service';
+        const statusMap = { confirmed: '✅ Confirmed', completed: '🏁 Completed', cancelled: '❌ Cancelled' };
 
-        historyMessage += `<b>${i + 1}. ${dateStr} в ${timeStr}</b>\n`;
+        historyMessage += `<b>${i + 1}. ${dateStr} at ${timeStr}</b>\n`;
         historyMessage += `   ✂️ ${serviceName}\n`;
-        historyMessage += `   Статус: ${statusMap[b.status] || b.status}\n`;
+        historyMessage += `   Status: ${statusMap[b.status] || b.status}\n`;
         historyMessage += `───────────────\n`;
       });
 
       return await safeSendMessage(chatId, historyMessage, { parse_mode: 'HTML' });
     }
   } catch (err) {
-    console.error('Ошибка обработки сообщения:', err.message);
+    console.error('Error processing message:', err.message);
   }
 });
 
-// --- 3. ИНЛАЙН КНОПКИ (Управление статусами и Оценка) ---
+// --- 3. INLINE CALLBACK BUTTONS (Status Updates & Ratings) ---
 bot.on('callback_query', async (query) => {
   try {
     const chatId = query.message.chat.id;
     const data = query.data;
 
-    // A. Изменение статуса бронирования
+    // A. Booking status update
     if (data.startsWith('status_')) {
       const [, newStatus, bookingId] = data.split('_');
 
       const existingBooking = await Booking.findById(bookingId).lean();
       if (!existingBooking) {
-        return await bot.answerCallbackQuery(query.id, { text: 'Запись не найдена.' }).catch(() => {});
+        return await bot.answerCallbackQuery(query.id, { text: 'Booking not found.' }).catch(() => {});
       }
 
       if (existingBooking.status === newStatus) {
-        return await bot.answerCallbackQuery(query.id, { text: 'Статус уже актуален.' }).catch(() => {});
+        return await bot.answerCallbackQuery(query.id, { text: 'Status is already up to date.' }).catch(() => {});
       }
 
       const updatedBooking = await Booking.findByIdAndUpdate(
@@ -288,74 +298,74 @@ bot.on('callback_query', async (query) => {
       ).populate('clientId staffId serviceId');
 
       const statusTitles = {
-        confirmed: '✅ Подтверждена',
-        completed: '🏁 Завершена',
-        cancelled: '❌ Отменена'
+        confirmed: '✅ Confirmed',
+        completed: '🏁 Completed',
+        cancelled: '❌ Cancelled'
       };
 
-      await bot.answerCallbackQuery(query.id, { text: `Статус изменен: ${statusTitles[newStatus] || newStatus}` }).catch(() => {});
+      await bot.answerCallbackQuery(query.id, { text: `Status changed: ${statusTitles[newStatus] || newStatus}` }).catch(() => {});
 
       let baseText = query.message.text || '';
-      baseText = baseText.split('\n\n📌 Текущий статус:')[0];
+      baseText = baseText.split('\n\n📌 Current Status:')[0].split('\n\n📌 Текущий статус:')[0];
 
-      const updatedText = `${baseText}\n\n📌 <b>Текущий статус:</b> ${statusTitles[newStatus] || newStatus}`;
+      const updatedText = `${baseText}\n\n📌 <b>Current Status:</b> ${statusTitles[newStatus] || newStatus}`;
 
       await bot.editMessageText(updatedText, {
         chat_id: chatId,
         message_id: query.message.message_id,
         parse_mode: 'HTML',
         reply_markup: getBookingStatusButtons(bookingId, newStatus)
-      }).catch((e) => console.error('Ошибка ред. сообщения:', e.message));
+      }).catch((e) => console.error('Error editing message:', e.message));
 
       if (newStatus === 'completed' && updatedBooking.clientId?.telegramChatId) {
         await sendRatingRequest(updatedBooking);
       }
     }
 
-    // B. Обработка оценки клиентом (1-5 ⭐)
+    // B. Handling Rating Callback (1-5 ⭐)
     if (data.startsWith('rate_')) {
       const [, rating, bookingId] = data.split('_');
       
       await Booking.findByIdAndUpdate(bookingId, { rating: Number(rating) });
 
-      await bot.answerCallbackQuery(query.id, { text: `Спасибо за вашу оценку: ${rating}⭐!` }).catch(() => {});
+      await bot.answerCallbackQuery(query.id, { text: `Thank you for your rating: ${rating}⭐!` }).catch(() => {});
       
       const thankYouText = 
-        `🌟 <b>Спасибо за отзыв!</b>\n` +
+        `🌟 <b>Thank you for your feedback!</b>\n` +
         `━━━━━━━━━━━━━━━━━━━\n` +
-        `Ваша оценка: <b>${rating} ⭐</b>\n\n` +
-        `Мы ценят ваше доверие и всегда рады видеть вас в <b>TopGun Barbershop</b>! 💈`;
+        `Your rating: <b>${rating} ⭐</b>\n\n` +
+        `We value your trust and look forward to seeing you again at <b>TopGun Barbershop</b>! 💈`;
 
       await bot.editMessageText(thankYouText, {
         chat_id: chatId,
         message_id: query.message.message_id,
         parse_mode: 'HTML'
-      }).catch((e) => console.error('Ошибка ред. оценки:', e.message));
+      }).catch((e) => console.error('Error editing rating:', e.message));
     }
   } catch (err) {
     if (!err.message.includes('message is not modified')) {
-      console.error('Ошибка callback:', err.message);
+      console.error('Callback error:', err.message);
     }
   }
 });
 
-// --- 4. ЕДИНАЯ ФУНКЦИЯ УВЕДОМЛЕНИЙ В TELEGRAM ---
+// --- 4. UNIFIED TELEGRAM NOTIFICATION FUNCTION ---
 const sendBookingNotification = async (targetChatId, bookingData, type = 'created') => {
   if (!targetChatId) return;
 
-  let title = '🎉 Новая запись!';
-  if (type === 'rescheduled') title = '🔄 Запись перенесена!';
-  if (type === 'cancelled') title = '❌ Запись отменена!';
+  let title = '🎉 New Booking!';
+  if (type === 'rescheduled') title = '🔄 Booking Rescheduled!';
+  if (type === 'cancelled') title = '❌ Booking Cancelled!';
 
   const message =
     `<b>${title}</b>\n` +
     `━━━━━━━━━━━━━━━━━━━\n` +
-    `👤 <b>Клиент:</b> ${bookingData.clientName}\n` +
-    `📞 <b>Телефон:</b> <code>${bookingData.clientPhone}</code>\n` +
-    `✂️ <b>Услуга:</b> ${bookingData.serviceTitle}\n` +
-    `🗓 <b>Дата:</b> ${bookingData.dateStr}\n` +
-    `⏰ <b>Время:</b> ${bookingData.timeSlot}\n` +
-    `💰 <b>Стоимость:</b> <b>$${bookingData.price}</b>\n` +
+    `👤 <b>Client:</b> ${bookingData.clientName}\n` +
+    `📞 <b>Phone:</b> <code>${bookingData.clientPhone}</code>\n` +
+    `✂️ <b>Service:</b> ${bookingData.serviceTitle}\n` +
+    `🗓 <b>Date:</b> ${bookingData.dateStr}\n` +
+    `⏰ <b>Time:</b> ${bookingData.timeSlot}\n` +
+    `💰 <b>Price:</b> <b>$${bookingData.price}</b>\n` +
     `━━━━━━━━━━━━━━━━━━━`;
 
   const options = { 
@@ -366,20 +376,20 @@ const sendBookingNotification = async (targetChatId, bookingData, type = 'create
   try {
     await safeSendMessage(targetChatId, message, options);
   } catch (error) {
-    console.error('Ошибка отправки в Telegram:', error.message);
+    console.error('Error sending Telegram message:', error.message);
   }
 };
 
-// --- 5. ФУНКЦИЯ ЗАПРОСА ОЦЕНКИ ПОСЛЕ ВИЗИТА ---
+// --- 5. POST-VISIT RATING REQUEST FUNCTION ---
 const sendRatingRequest = async (booking) => {
   const clientChatId = booking.clientId?.telegramChatId;
   if (!clientChatId) return;
 
-  const staffName = booking.staffId?.name || 'вашего мастера';
+  const staffName = booking.staffId?.name || 'your barber';
   const text = 
-    `💈 <b>Как прошёл ваш визит?</b>\n` +
+    `💈 <b>How was your visit?</b>\n` +
     `━━━━━━━━━━━━━━━━━━━\n` +
-    `Пожалуйста, оцените качество работы мастера <b>${staffName}</b>:`;
+    `Please rate your experience with <b>${staffName}</b>:`;
 
   const options = {
     parse_mode: 'HTML',
@@ -399,11 +409,10 @@ const sendRatingRequest = async (booking) => {
   await safeSendMessage(clientChatId, text, options);
 };
 
-// --- 6. CRON JOB: ОПТИМИЗИРОВАННЫЕ НАПОМИНАНИЯ (Чистый UTC Timestamp) ---
+// --- 6. CRON JOB: UPCOMING VISIT REMINDERS ---
 cron.schedule('*/15 * * * *', async () => {
   try {
     const now = new Date();
-    // Использование точного смещения в миллисекундах обеспечивает корректность UTC независимо от ОС сервера
     const twoHoursLater = new Date(now.getTime() + 2 * 60 * 60 * 1000);
     const twoHoursAnd15Min = new Date(now.getTime() + (2 * 60 + 15) * 60 * 1000);
 
@@ -421,16 +430,23 @@ cron.schedule('*/15 * * * *', async () => {
 
     for (const booking of upcomingBookings) {
       if (booking.clientId?.telegramChatId) {
-        const timeStr = new Date(booking.startDatetime).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
-        const staffName = booking.staffId?.name || 'вашему мастеру';
+        // Correct timezone conversion for cron job reminders
+        const timeStr = new Date(booking.startDatetime).toLocaleTimeString('en-US', { 
+          hour: '2-digit', 
+          minute: '2-digit', 
+          hour12: false, 
+          timeZone: BUSINESS_TIMEZONE 
+        });
+        
+        const staffName = booking.staffId?.name || 'your barber';
         
         const reminderText = 
-          `⏰ <b>Предстоящий визит!</b>\n` +
+          `⏰ <b>Upcoming Visit Reminder!</b>\n` +
           `━━━━━━━━━━━━━━━━━━━\n` +
-          `Напоминаем, что сегодня в <b>${timeStr}</b> у вас запланирована запись в <b>TopGun Barbershop</b>.\n\n` +
-          `💈 <b>Мастер:</b> ${staffName}\n` +
-          `✂️ <b>Услуга:</b> ${booking.serviceId?.title || 'Стрижка'}\n\n` +
-          `<i>Ждём вас! Если планы изменились, пожалуйста, свяжитесь с нами.</i>`;
+          `Reminder: You have an appointment today at <b>${timeStr}</b> at <b>TopGun Barbershop</b>.\n\n` +
+          `💈 <b>Barber:</b> ${staffName}\n` +
+          `✂️ <b>Service:</b> ${booking.serviceId?.title || 'Haircut'}\n\n` +
+          `<i>We look forward to seeing you! Please contact us if your plans change.</i>`;
 
         await safeSendMessage(booking.clientId.telegramChatId, reminderText, { parse_mode: 'HTML' });
       }
@@ -444,7 +460,7 @@ cron.schedule('*/15 * * * *', async () => {
       );
     }
   } catch (err) {
-    console.error('Ошибка Cron Job:', err.message);
+    console.error('Cron Job Error:', err.message);
   }
 });
 

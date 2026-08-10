@@ -128,7 +128,7 @@ tenantSchema.virtual('isOpenNow').get(function () {
    ========================================================================== */
 
 // Автоматическая генерация slug перед валидацией, если slug не передан явно
-tenantSchema.pre('validate', function (next) {
+tenantSchema.pre('validate', function () {
   if (this.name && !this.slug) {
     this.slug = this.name
       .toLowerCase()
@@ -136,7 +136,6 @@ tenantSchema.pre('validate', function (next) {
       .trim()
       .replace(/\s+/g, '-');
   }
-  next();
 });
 
 /* ==========================================================================
