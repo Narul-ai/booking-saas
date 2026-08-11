@@ -1,8 +1,4 @@
-Дааа, вот теперь README можно сделать реально **portfolio-level**, а не просто документацией 😎
 
-Я бы добавил все 4 вещи прямо в текущий README: **Mermaid architecture**, отдельный блок **Engineering Challenges & Solutions**, **CLI/API preview**, и **browser mockups** для скриншотов. Причём я немного перестроил README, чтобы эти элементы выглядели естественно, а не как набор приколов.
-
-Вот готовая обновлённая версия:
 
 # ✂️ Booking SaaS — Online Booking & Business Management Platform
 
