@@ -25,6 +25,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [resetToken, setResetToken] = useState(null); // Токен для сброса пароля
   
   const [selectedService, setSelectedService] = useState('');
   const [selectedStaff, setSelectedStaff] = useState('');
@@ -34,9 +35,19 @@ function App() {
   const [pendingStaffId, setPendingStaffId] = useState('');
 
   /* ==========================================================================
-     1. SESSION INITIALIZATION
+     1. SESSION INITIALIZATION & RESET TOKEN HANDLING
      ========================================================================== */
   useEffect(() => {
+    // Проверка ссылки сброса пароля
+    const path = window.location.pathname;
+    if (path.startsWith('/reset-password/')) {
+      const token = path.split('/reset-password/')[1];
+      if (token) {
+        setResetToken(token);
+        setIsAuthOpen(true); // Автоматически открываем AuthModal для сброса
+      }
+    }
+
     const token = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
 
@@ -189,11 +200,17 @@ function App() {
     }
 
     setIsAuthOpen(false);
-    setSelectedService(pendingServiceId || selectedService);
-    setSelectedStaff(pendingStaffId || selectedStaff);
-    setPendingServiceId('');
-    setPendingStaffId('');
-    setIsModalOpen(true);
+    setResetToken(null);
+    window.history.pushState({}, '', '/'); // Очищаем адрес от /reset-password/
+
+    // Если была отложенная запись, открываем модалку записи
+    if (pendingServiceId || pendingStaffId) {
+      setSelectedService(pendingServiceId || selectedService);
+      setSelectedStaff(pendingStaffId || selectedStaff);
+      setPendingServiceId('');
+      setPendingStaffId('');
+      setIsModalOpen(true);
+    }
   };
 
   const handleLogout = () => {
@@ -277,7 +294,12 @@ function App() {
 
       <AuthModal 
         isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
+        resetToken={resetToken}
+        onClose={() => {
+          setIsAuthOpen(false);
+          setResetToken(null);
+          window.history.pushState({}, '', '/');
+        }}
         onSuccess={handleAuthSuccess}
       />
     </div>
