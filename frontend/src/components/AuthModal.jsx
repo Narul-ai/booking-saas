@@ -21,7 +21,7 @@ import axios from 'axios';
 
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/api';
 
-export default function AuthModal({ isOpen, onClose, onSuccess }) {
+export default function AuthModal({ isOpen, onClose, onSuccess, resetToken }) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
@@ -53,7 +53,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
   // Password Validation Metrics
   const hasMinLength = password.length >= 8;
   const hasNumber = /\d/.test(password);
-  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<> balance]/.test(password);
+  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<> ]/.test(password);
 
   const getPasswordStrength = () => {
     let score = 0;
@@ -65,47 +65,72 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
 
   const strengthScore = getPasswordStrength();
 
-  const handleForgotSubmit = async (e) => {
-  e.preventDefault();
-  setError('');
+  // Обработка отправки нового пароля (когда перешли по токену из письма)
+ const handleResetPasswordSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
 
-  // 1. Проверка на валидность Email на фронтенде
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    setError('Please enter a valid email address.');
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    // 2. Реальный запрос к бэкенду
-    await axios.post(`${API_URL}/auth/forgot-password`, { email });
-    
-    // Переключаем в состояние "Инструкции отправлены"
-    setForgotSent(true);
-  } catch (err) {
-    console.error('Forgot Password Error:', err);
-    
-    const status = err.response?.status;
-    const serverMsg = err.response?.data?.message;
-
-    if (status === 429) {
-      setError('Too many requests. Please wait a few minutes before trying again.');
-    } else {
-      setError(serverMsg || 'Failed to send reset email. Please try again later.');
+    if (!hasMinLength) {
+      setError('New password must be at least 8 characters long.');
+      return;
     }
-  } finally {
-    setLoading(false);
-  }
-};
+
+    setLoading(true);
+
+    try {
+      await axios.post(`${API_URL}/auth/reset-password/${resetToken}`, { password });
+
+      setIsSuccess(true);
+
+      setTimeout(() => {
+        setPassword('');
+        setIsSuccess(false);
+        onClose();
+      }, 1500);
+    } catch (err) {
+      console.error('Reset Password Error:', err);
+      const serverMsg = err.response?.data?.message;
+      setError(serverMsg || 'Failed to reset password. The link may have expired.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await axios.post(`${API_URL}/auth/forgot-password`, { email });
+      setForgotSent(true);
+    } catch (err) {
+      console.error('Forgot Password Error:', err);
+      const status = err.response?.status;
+      const serverMsg = err.response?.data?.message;
+
+      if (status === 429) {
+        setError('Too many requests. Please wait a few minutes before trying again.');
+      } else {
+        setError(serverMsg || 'Failed to send reset email. Please try again later.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuggestSignIn(false);
 
-    // Client-side validation
     if (isSignUp && !hasMinLength) {
       setError('Password must be at least 8 characters long');
       return;
@@ -122,7 +147,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
       const token = res.data?.token || res.data?.accessToken || res.data?.jwt;
       const user = res.data?.user || (res.data?.token ? res.data : null);
 
-      // Запоминание пользователя: localStorage или sessionStorage
       const targetStorage = rememberMe ? localStorage : sessionStorage;
 
       if (token) {
@@ -193,11 +217,9 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
         className="bg-gradient-to-b from-zinc-900 via-zinc-900/95 to-zinc-950 border border-zinc-800/80 w-full max-w-md rounded-3xl p-6 sm:p-8 relative shadow-2xl shadow-amber-500/10 transition-all transform animate-in zoom-in-95 duration-300 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* MongoDB Style Ambient Glow Background */}
         <div className="absolute -top-28 -right-28 w-56 h-56 bg-gradient-to-br from-amber-500/20 to-amber-600/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-28 -left-28 w-56 h-56 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Close Button */}
         <button 
           onClick={onClose} 
           className="absolute top-5 right-5 w-8 h-8 rounded-xl bg-zinc-800/50 hover:bg-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center border border-zinc-700/50 transition-all duration-200 active:scale-90 cursor-pointer z-10 hover:border-zinc-600"
@@ -206,21 +228,97 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
           <X size={16} />
         </button>
 
-        {/* Success View */}
         {isSuccess ? (
           <div className="py-12 flex flex-col items-center justify-center text-center animate-in zoom-in-90 duration-300">
             <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mb-4 shadow-xl shadow-emerald-500/10 animate-bounce">
               <CheckCircle2 size={32} />
             </div>
             <h3 className="text-2xl font-black text-white tracking-tight">
-              {isSignUp ? 'Account Created!' : 'Authenticated!'}
+              {resetToken ? 'Password Updated!' : isSignUp ? 'Account Created!' : 'Authenticated!'}
             </h3>
             <p className="text-xs font-semibold text-zinc-400 mt-1.5">
-              Welcome back to your workspace
+              {resetToken ? 'Your password has been reset successfully.' : 'Welcome back to your workspace'}
             </p>
           </div>
+        ) : resetToken ? (
+          /* ==================== RESET PASSWORD WITH TOKEN VIEW ==================== */
+          <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+            <div className="mb-6 text-left">
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20 mb-3 shadow-sm">
+                <KeyRound size={12} className="text-amber-400" /> New Password
+              </span>
+              <h2 className="text-2xl font-black text-white tracking-tight">
+                Set New Password
+              </h2>
+              <p className="text-xs text-zinc-400 font-medium mt-1.5 leading-relaxed">
+                Please enter a new password for your account below.
+              </p>
+            </div>
+
+            {error && (
+              <div className="mb-5 p-3.5 bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-semibold rounded-2xl flex items-start gap-2.5 animate-in slide-in-from-top-2 duration-200">
+                <AlertCircle size={16} className="shrink-0 text-rose-400 mt-0.5" />
+                <span className="leading-tight">{error}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleResetPasswordSubmit} className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-extrabold uppercase tracking-widest text-zinc-400 mb-1.5 flex items-center gap-1.5">
+                  <Lock size={12} className="text-amber-500" /> New Password
+                </label>
+                <div className="relative">
+                  <input 
+                    type={showPassword ? 'text' : 'password'} 
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="w-full bg-zinc-950/80 border border-zinc-800 rounded-2xl pl-4 pr-11 py-3 text-sm text-white font-medium placeholder:text-zinc-600 focus:bg-zinc-950 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500/80 transition-all duration-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 p-1 transition-colors cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+
+                {password.length > 0 && (
+                  <div className="mt-2.5 space-y-2 animate-in fade-in duration-200">
+                    <div className="flex gap-1.5 h-1">
+                      <div className={`h-full flex-1 rounded-full transition-all duration-300 ${strengthScore >= 1 ? 'bg-amber-500 shadow-sm shadow-amber-500/50' : 'bg-zinc-800'}`} />
+                      <div className={`h-full flex-1 rounded-full transition-all duration-300 ${strengthScore >= 2 ? 'bg-amber-500 shadow-sm shadow-amber-500/50' : 'bg-zinc-800'}`} />
+                      <div className={`h-full flex-1 rounded-full transition-all duration-300 ${strengthScore >= 3 ? 'bg-emerald-500 shadow-sm shadow-emerald-500/50' : 'bg-zinc-800'}`} />
+                    </div>
+
+                    <div className="flex items-center gap-3 text-[10px] font-bold text-zinc-400">
+                      <span className={`flex items-center gap-1 ${hasMinLength ? 'text-emerald-400' : 'text-zinc-500'}`}>
+                        <Check size={10} /> 8+ chars
+                      </span>
+                      <span className={`flex items-center gap-1 ${hasNumber ? 'text-emerald-400' : 'text-zinc-500'}`}>
+                        <Check size={10} /> 1 number
+                      </span>
+                      <span className={`flex items-center gap-1 ${hasSpecialChar ? 'text-emerald-400' : 'text-zinc-500'}`}>
+                        <Check size={10} /> 1 symbol
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <button 
+                type="submit" 
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 disabled:opacity-50 text-zinc-950 font-black py-3.5 rounded-2xl shadow-lg shadow-amber-500/20 hover:shadow-amber-500/35 transition-all duration-200 active:scale-[0.98] text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {loading ? <Loader2 size={18} className="animate-spin text-zinc-950" /> : <span>Update Password</span>}
+              </button>
+            </form>
+          </div>
         ) : isForgotPassword ? (
-          /* Forgot Password View */
+          /* ==================== FORGOT PASSWORD VIEW ==================== */
           <div className="animate-in fade-in slide-in-from-right-4 duration-300">
             <button
               type="button"
@@ -286,8 +384,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
             )}
           </div>
         ) : (
+          /* ==================== SIGN IN / SIGN UP VIEW ==================== */
           <>
-            {/* Header */}
             <div className="mb-6 text-center">
               <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20 mb-3 shadow-sm">
                 <Sparkles size={12} className="text-amber-400 animate-pulse" />
@@ -303,7 +401,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
               </p>
             </div>
 
-            {/* Error Notification */}
             {error && (
               <div className="mb-5 p-3.5 bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-semibold rounded-2xl flex flex-col gap-2 animate-in slide-in-from-top-2 duration-200">
                 <div className="flex items-start gap-2.5">
@@ -323,7 +420,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
               </div>
             )}
 
-            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               {isSignUp && (
                 <div className="animate-in fade-in slide-in-from-top-1 duration-200">
@@ -389,7 +485,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
                   </button>
                 </div>
 
-                {/* Password Strength Indicator (Sign-Up Only) */}
                 {isSignUp && password.length > 0 && (
                   <div className="mt-2.5 space-y-2 animate-in fade-in duration-200">
                     <div className="flex gap-1.5 h-1">
@@ -413,7 +508,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
                 )}
               </div>
 
-              {/* Remember Me Checkbox (Sign-In Only) */}
               {!isSignUp && (
                 <div className="flex items-center gap-2.5 pt-1">
                   <div className="relative flex items-center">
@@ -431,7 +525,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
                 </div>
               )}
 
-              {/* Action Button */}
               <button 
                 type="submit" 
                 disabled={loading}
@@ -448,13 +541,11 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
               </button>
             </form>
 
-            {/* SSL Badge */}
             <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold text-zinc-500 mt-4">
               <ShieldCheck size={13} className="text-amber-500/80" />
               <span>256-bit SSL Encrypted Connection</span>
             </div>
 
-            {/* Toggle Mode */}
             <div className="mt-5 text-center pt-4 border-t border-zinc-800/80">
               <p className="text-xs text-zinc-400 font-medium">
                 {isSignUp ? 'Already have an account?' : "Don't have an account yet?"}{' '}
