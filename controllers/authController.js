@@ -1,26 +1,13 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key_change_in_production';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
-// Настройка транспортера Nodemailer для отправки писем
-const port = Number(process.env.SMTP_PORT) || 465;
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: port,
-  secure: port === 465, // Автоматически true для 465, false для 587
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS ? process.env.SMTP_PASS.replace(/\s+/g, '') : '', // Автоматически убирает пробелы
-  },
-  tls: {
-    rejectUnauthorized: false // Предотвращает блокировку по самоподписанным сертификатам
-  }
-});
+// Инициализация клиентом Resend API
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 exports.register = async (req, res) => {
   try {
@@ -178,37 +165,38 @@ exports.forgotPassword = async (req, res) => {
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
     const resetUrl = `${clientUrl}/reset-password/${resetToken}`;
 
-    const mailOptions = {
-      from: `"${process.env.APP_NAME || 'TopGun Barbershop'}" <${process.env.SMTP_USER}>`,
-      to: user.email,
-      subject: 'Password Reset Request',
-      html: `
-        <div style="font-family: Arial, sans-serif; background-color: #09090b; color: #f4f4f5; padding: 24px; border-radius: 12px;">
-          <h2 style="color: #f59e0b; margin-bottom: 12px;">Password Reset Request</h2>
-          <p style="font-size: 14px; color: #a1a1aa; line-height: 1.5;">
-            You are receiving this email because you (or someone else) requested a password reset for your account.
-          </p>
-          <p style="font-size: 14px; color: #a1a1aa; line-height: 1.5;">
-            Please click the button below to reset your password. This link is valid for <strong>15 minutes</strong>.
-          </p>
-          <div style="margin: 24px 0;">
-            <a href="${resetUrl}" style="background-color: #f59e0b; color: #09090b; text-decoration: none; padding: 12px 24px; font-weight: bold; border-radius: 8px; display: inline-block;">
-              Reset Password
-            </a>
-          </div>
-          <p style="font-size: 12px; color: #71717a;">
-            If you did not request this, please ignore this email and your password will remain unchanged.
-          </p>
-        </div>
-      `
-    };
-
     try {
-      await transporter.sendMail(mailOptions);
+      // Отправка письма через Resend HTTP API
+      await resend.emails.send({
+        from: `${process.env.APP_NAME || 'TopGun Barbershop'} <onboarding@resend.dev>`,
+        to: user.email,
+        subject: 'Password Reset Request',
+        html: `
+          <div style="font-family: Arial, sans-serif; background-color: #09090b; color: #f4f4f5; padding: 24px; border-radius: 12px;">
+            <h2 style="color: #f59e0b; margin-bottom: 12px;">Password Reset Request</h2>
+            <p style="font-size: 14px; color: #a1a1aa; line-height: 1.5;">
+              You are receiving this email because you (or someone else) requested a password reset for your account.
+            </p>
+            <p style="font-size: 14px; color: #a1a1aa; line-height: 1.5;">
+              Please click the button below to reset your password. This link is valid for <strong>15 minutes</strong>.
+            </p>
+            <div style="margin: 24px 0;">
+              <a href="${resetUrl}" style="background-color: #f59e0b; color: #09090b; text-decoration: none; padding: 12px 24px; font-weight: bold; border-radius: 8px; display: inline-block;">
+                Reset Password
+              </a>
+            </div>
+            <p style="font-size: 12px; color: #71717a;">
+              If you did not request this, please ignore this email and your password will remain unchanged.
+            </p>
+          </div>
+        `
+      });
+
       return res.status(200).json({
         success: true,
         message: 'If an account with that email exists, a password reset link has been sent.'
       });
+
     } catch (sendError) {
       console.error('[EMAIL SEND ERROR]:', sendError);
       user.resetPasswordToken = undefined;
@@ -217,7 +205,7 @@ exports.forgotPassword = async (req, res) => {
 
       return res.status(500).json({
         success: false,
-        message: 'Email could not be sent. Please check SMTP settings.'
+        message: 'Email could not be sent. Please check email service settings.'
       });
     }
 

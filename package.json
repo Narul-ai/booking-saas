@@ -23,6 +23,7 @@
     "node-telegram-bot-api": "^1.2.0",
     "nodemailer": "^9.0.5",
     "request": "^2.88.2",
+    "resend": "^6.19.0",
     "telegraf": "^4.16.3"
   },
   "devDependencies": {
