@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 // Schema for Staff-specific details (Barbers)
-// Schema for Staff-specific details (Barbers)
 const staffProfileSchema = new mongoose.Schema(
   {
     title: { 
@@ -33,11 +32,10 @@ const staffProfileSchema = new mongoose.Schema(
       type: Boolean, 
       default: true 
     },
-    // 💡 ДОБАВЛЯЕМ РАБОЧИЕ ДНИ МАСТЕРА
     workingDays: {
       type: [String],
       enum: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'],
-      default: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] // по умолчанию работает без выходных
+      default: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
     }
   },
   { _id: false }
@@ -72,25 +70,22 @@ const userSchema = new mongoose.Schema(
         'Password is required for administrative accounts'
       ],
       minlength: [8, 'Password must be at least 8 characters long'],
-      select: false // Never return password field in queries by default
+      select: false
     },
-    // === ДОБАВЛЕНЫ ПОЛЯ ДЛЯ СБРОСА ПАРОЛЯ ===
     resetPasswordToken: {
       type: String,
       default: null,
-      select: false // Чтобы хэш токена случайно не утекал в обычных запросах
+      select: false
     },
     resetPasswordExpire: {
       type: Date,
       default: null,
       select: false
     },
-    // =========================================
     phone: { 
       type: String, 
-      required: false, 
-      trim: true,
-      index: true
+      default: null, 
+      trim: true
     },
     role: { 
       type: String, 
@@ -147,7 +142,16 @@ const userSchema = new mongoose.Schema(
    1. INDEXES FOR PERFORMANCE & UNIQUE CONSTRAINTS
    ========================================================================== */
 userSchema.index({ email: 1 }, { unique: true, sparse: true });
-userSchema.index({ tenantId: 1, phone: 1 }, { unique: true, sparse: true });
+
+// ИСПРАВЛЕНИЕ: Индекс проверяет уникальность только при наличии реального номера телефона
+userSchema.index(
+  { tenantId: 1, phone: 1 }, 
+  { 
+    unique: true, 
+    partialFilterExpression: { phone: { $type: "string" } } 
+  }
+);
+
 userSchema.index({ tenantId: 1, role: 1, isActive: 1 });
 userSchema.index({ tenantId: 1, telegramChatId: 1 });
 
@@ -155,8 +159,6 @@ userSchema.index({ tenantId: 1, telegramChatId: 1 });
    2. HOOKS & INSTANCE METHODS
    ========================================================================== */
 
-// Automatic password hashing pre-save hook
-// ✅ НОВОЕ (чистый async/await)
 userSchema.pre('save', async function () {
   if (!this.isModified('password') || !this.password) {
     return;
@@ -166,7 +168,6 @@ userSchema.pre('save', async function () {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Helper instance method for checking password validity
 userSchema.methods.comparePassword = async function (candidatePassword) {
   if (!this.password) return false;
   return await bcrypt.compare(candidatePassword, this.password);
