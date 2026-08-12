@@ -1,967 +1,757 @@
-
-
-# ✂️ Booking SaaS — Online Booking & Business Management Platform
+# ✂️ TopGun Barbershop — Booking SaaS
 
 <div align="center">
 
-### 🚀 A modern multi-tenant SaaS platform for appointment-based businesses
+### **Premium Barbershop Experience. Reinvented.**
 
-**Book smarter. Manage easier. Automate everything.**
+A modern full-stack booking platform designed to make appointments effortless for clients and business management effortless for barbershops.
 
-[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge\&logo=react\&logoColor=black)](https://react.dev/)
-[![Vite](https://img.shields.io/badge/Vite-Frontend-646CFF?style=for-the-badge\&logo=vite\&logoColor=white)](https://vitejs.dev/)
-[![Node.js](https://img.shields.io/badge/Node.js-Backend-339933?style=for-the-badge\&logo=node.js\&logoColor=white)](https://nodejs.org/)
-[![Express](https://img.shields.io/badge/Express.js-API-000000?style=for-the-badge\&logo=express\&logoColor=white)](https://expressjs.com/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge\&logo=mongodb\&logoColor=white)](https://www.mongodb.com/)
-[![JWT](https://img.shields.io/badge/JWT-Auth-000000?style=for-the-badge\&logo=jsonwebtokens\&logoColor=white)](https://jwt.io/)
-[![Tailwind](https://img.shields.io/badge/Tailwind-CSS-06B6D4?style=for-the-badge\&logo=tailwindcss\&logoColor=white)](https://tailwindcss.com/)
+<br/>
+
+**📅 Book Online · ✂️ Meet Your Barber · 🔔 Never Miss an Appointment**
+
+<br/>
+
+[![React](https://img.shields.io/badge/React_18-61DAFB?style=flat-square\&logo=react\&logoColor=black)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat-square\&logo=vite\&logoColor=white)](https://vitejs.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=flat-square\&logo=tailwindcss\&logoColor=white)](https://tailwindcss.com/)
+[![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat-square\&logo=node.js\&logoColor=white)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express.js-000000?style=flat-square\&logo=express\&logoColor=white)](https://expressjs.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB_Atlas-47A248?style=flat-square\&logo=mongodb\&logoColor=white)](https://www.mongodb.com/)
 
 </div>
 
 ---
 
-## 🌐 Overview
+## 🖤 The Experience
 
-**Booking SaaS** is a full-stack appointment management platform designed for:
+**TopGun Barbershop** combines a premium customer-facing experience with a powerful management system behind the scenes.
 
-* 💈 Barbershops
-* 💇 Beauty salons
-* ✂️ Individual specialists
-* 🏢 Service-based businesses
+Instead of phone calls, waiting lines and manual scheduling, clients can book their appointment in just a few steps.
 
-The platform allows customers to book appointments while giving businesses a centralized system for managing **staff, services, schedules, bookings, customers and notifications**.
-
-The application is built around a **multi-tenant architecture**, meaning multiple independent businesses can operate on the same platform while keeping their data completely isolated.
-
----
-
-# ⚡ Core Features
-
-| Feature                           | Description                               |
-| --------------------------------- | ----------------------------------------- |
-| 🏢 **Multi-Tenancy**              | Isolated data for every business          |
-| 📅 **Smart Booking**              | Dynamic availability calculation          |
-| 🛡️ **Double Booking Protection** | Prevents overlapping appointments         |
-| 👨‍💼 **Staff Management**        | Profiles, services and schedules          |
-| ✂️ **Services Engine**            | Flexible pricing and duration             |
-| 🔐 **RBAC**                       | Superadmin, admin, staff and client roles |
-| 📧 **Password Recovery**          | Secure email-based reset flow             |
-| 🤖 **Telegram Bot**               | Instant booking notifications             |
-| 🎛️ **Admin Dashboard**           | Complete business management              |
-| 📊 **Business Analytics**         | Bookings, visits and revenue              |
-| 📱 **Responsive UI**              | Desktop, tablet and mobile                |
-
----
-
-# 🏗️ Architecture
-
-The application follows a modular **MERN architecture**.
-
-## 🔥 System Architecture
-
-```mermaid
-flowchart TB
-
-    Client["👤 Client / Browser"]
-    Admin["🎛️ Admin Dashboard"]
-
-    React["⚛️ React 18 + Vite<br/>Tailwind CSS"]
-    Axios["📡 Axios / REST API"]
-
-    Express["🚂 Node.js + Express API"]
-
-    Auth["🔐 JWT + RBAC"]
-    Booking["📅 Booking Engine"]
-    Staff["👨‍💼 Staff Management"]
-    Services["✂️ Services Engine"]
-    Tenant["🏢 Multi-Tenant Layer"]
-
-    Mongo["🍃 MongoDB Atlas<br/>Mongoose"]
-
-    Mail["📧 Nodemailer<br/>SMTP"]
-    Telegram["🤖 Telegram Bot API"]
-
-    Client --> React
-    Admin --> React
-
-    React --> Axios
-    Axios --> Express
-
-    Express --> Auth
-    Express --> Booking
-    Express --> Staff
-    Express --> Services
-    Express --> Tenant
-
-    Auth --> Mongo
-    Booking --> Mongo
-    Staff --> Mongo
-    Services --> Mongo
-    Tenant --> Mongo
-
-    Express --> Mail
-    Express --> Telegram
-
-    classDef frontend fill:#61DAFB,color:#000,stroke:#222
-    classDef backend fill:#339933,color:#fff,stroke:#222
-    classDef database fill:#47A248,color:#fff,stroke:#222
-    classDef integration fill:#6c63ff,color:#fff,stroke:#222
-
-    class React,Axios frontend
-    class Express,Auth,Booking,Staff,Services,Tenant backend
-    class Mongo database
-    class Mail,Telegram integration
-```
-
-### 🔄 Request Lifecycle
+Meanwhile, the barbershop gets a centralized workspace for managing appointments, specialists, services and business performance.
 
 ```text
-┌──────────────┐
-│   Browser    │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│    React     │
-└──────┬───────┘
-       │ Axios
-       ▼
-┌──────────────┐
-│   Express    │
-└──────┬───────┘
-       │
-       ├──────────────► 🔐 Authentication
-       │
-       ├──────────────► 🏢 Tenant Validation
-       │
-       ├──────────────► 📅 Business Logic
-       │
-       ▼
-┌──────────────┐
-│   MongoDB    │
-└──────────────┘
-       │
-       ├──────────────► 📧 Email
-       │
-       └──────────────► 🤖 Telegram
+                    TOPGUN BARBERSHOP
+
+        ┌──────────────────────────────────────┐
+        │                                      │
+        │          ✂️  PREMIUM EXPERIENCE      │
+        │                                      │
+        │     Discover → Choose → Book         │
+        │                                      │
+        └──────────────────┬───────────────────┘
+                           │
+              ┌────────────┴────────────┐
+              │                         │
+              ▼                         ▼
+        👤 CLIENT                  🎛️ ADMIN
+              │                         │
+        Book appointment          Manage business
+        View barbers              Track bookings
+        Connect Telegram          Manage team
+        View history              Manage services
+              │                         │
+              └────────────┬────────────┘
+                           │
+                           ▼
+                    🍃 MongoDB Atlas
 ```
 
 ---
 
-# 🏢 Multi-Tenancy
+# ✨ What Makes It Different
 
-The platform uses `tenantId` to isolate business data.
+This isn't just a booking form.
 
-Every important resource belongs to a specific tenant:
+It's a complete digital experience built around the way a modern barbershop actually works.
+
+### 📅 Instant Booking
+
+Clients can find an available specialist and book a suitable time without calling the barbershop.
+
+### 👨‍💼 Personal Barber Selection
+
+Every specialist has their own profile, rating, specialization, working schedule and portfolio.
+
+### 🟢 Real Availability
+
+The interface clearly shows whether a barber is currently available or has a day off.
+
+### 🤖 Telegram Notifications
+
+Clients can connect Telegram and receive appointment-related notifications directly in the messenger.
+
+### 🎛️ Business Control Center
+
+Administrators get a dedicated dashboard for monitoring bookings, revenue, staff and services.
+
+### 🔐 Secure Accounts
+
+Authentication, protected access and password recovery are built directly into the platform.
+
+---
+
+# 🖥️ Product Preview
+
+<div align="center">
+
+### 🏠 Landing Page
+
+</div>
 
 ```text
-Tenant
-├── Users
-├── Staff
-├── Services
-├── Clients
-├── Bookings
-└── Settings
+╭──────────────────────────────────────────────────────────────────────╮
+│ ●  ●  ●     topgunbarbershop.com                              ─ □ × │
+├──────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  TOPGUN                                    Services  Barbers  About  │
+│                                             Contacts        BOOK NOW │
+│                                                                      │
+│  🟢 Open Today • 9:00 — 21:00                                      │
+│                                                                      │
+│             YOUR STYLE.                                             │
+│             YOUR BARBER.                                            │
+│             YOUR TIME.                                              │
+│                                                                      │
+│       Premium grooming without the waiting.                         │
+│                                                                      │
+│       [ BOOK AN APPOINTMENT ]                                       │
+│                                                                      │
+│       ⚡ Instant 24/7 Booking      ✓ No Waiting Lines               │
+│                                                                      │
+│  ────────────────────────────────────────────────────────────────    │
+│                                                                      │
+│       FEATURED SPECIALISTS                                          │
+│                                                                      │
+│       [ Barber ]       [ Barber ]       [ Barber ]                  │
+│       ★ 4.9            ★ 5.0            ★ 4.9                       │
+│                                                                      │
+╰──────────────────────────────────────────────────────────────────────╯
 ```
 
-For example:
+<div align="center">
 
-```javascript
-{
-  _id: "...",
-  tenantId: "tenant_123",
-  name: "Premium Haircut",
-  price: 5000,
-  duration: 60
-}
-```
+### 📅 Booking Experience
 
-A request belonging to one business cannot access resources belonging to another tenant.
-
-This allows the application to scale from:
+</div>
 
 ```text
-1 Business
-     ↓
-10 Businesses
-     ↓
-100 Businesses
-     ↓
-1000+ Businesses
+╭──────────────────────────────────────────────────────────────────────╮
+│ ●  ●  ●     topgunbarbershop.com/book                         ─ □ × │
+├──────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│                     BOOK YOUR APPOINTMENT                           │
+│                                                                      │
+│              ① Service     ──     ② Barber     ──     ③ Time       │
+│                                                                      │
+│   SELECT A SERVICE                                                   │
+│                                                                      │
+│   ┌────────────────────────────────────────────────────────────┐     │
+│   │  ✂️  Classic Haircut                              $25       │     │
+│   │      Clean cut & styling                         45 min     │     │
+│   │                                                            │     │
+│   │                                    [ SELECT → ]             │     │
+│   └────────────────────────────────────────────────────────────┘     │
+│                                                                      │
+│   ┌────────────────────────────────────────────────────────────┐     │
+│   │  🧔  Beard & Shaving                              $18       │     │
+│   │      Precision beard grooming                     30 min    │     │
+│   │                                                            │     │
+│   │                                    [ SELECT → ]             │     │
+│   └────────────────────────────────────────────────────────────┘     │
+│                                                                      │
+╰──────────────────────────────────────────────────────────────────────╯
 ```
 
-without creating a separate application for every business.
+<div align="center">
 
----
+### 🎛️ Admin Control Panel
 
-# 📅 Smart Booking Engine
-
-The booking flow is intentionally simple for customers.
-
-### 1️⃣ Choose a Service
-
-Customers select a service and see:
-
-* Name
-* Description
-* Price
-* Duration
-
-### 2️⃣ Choose a Specialist
-
-Customers can select a specialist based on:
-
-* Avatar
-* Name
-* Bio
-* Rating
-* Available services
-
-### 3️⃣ Choose Date & Time
-
-Available slots are calculated dynamically using:
-
-* Service duration
-* Specialist schedule
-* Working days
-* Days off
-* Existing bookings
-* Current time
-* Specialist availability
-
----
-
-## 🛡️ Double Booking Prevention
-
-The server does not blindly trust the frontend.
-
-Before creating a booking, the backend verifies whether the requested time overlaps with an existing appointment.
+</div>
 
 ```text
-New Booking
-     │
-     ▼
-Find Specialist
-     │
-     ▼
-Check Working Day
-     │
-     ▼
-Check Availability
-     │
-     ▼
-Check Existing Bookings
-     │
-     ▼
-Check Time Overlap
-     │
- ┌───┴────┐
- ▼        ▼
-FREE     BUSY
- │        │
- ▼        ▼
-CREATE   REJECT
+╭──────────────────────────────────────────────────────────────────────╮
+│ ●  ●  ●     topgunbarbershop.com/admin                         ─ □ × │
+├──────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  TOPGUN ADMIN                                      👤 Administrator  │
+│                                                                      │
+│  BUSINESS OVERVIEW                                                   │
+│                                                                      │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌────────────┐ │
+│  │ EST. REVENUE │ │ APPOINTMENTS │ │ CONFIRMATION │ │ TEAM       │ │
+│  │              │ │              │ │              │ │            │ │
+│  │   $12,450    │ │     248      │ │     100%     │ │   8 / 14   │ │
+│  │   Avg $50     │ │   All Time   │ │  Confirmed   │ │  Team/Services│
+│  └──────────────┘ └──────────────┘ └──────────────┘ └────────────┘ │
+│                                                                      │
+│  [ All Time ] [ This Month ] [ 7 Days ]                    [ SYNC ] │
+│                                                                      │
+│  [ BOOKINGS MONITOR ] [ SERVICES ] [ BARBER TEAM ]                 │
+│                                                                      │
+│  Client       Service          Specialist      Date       Status    │
+│  ─────────────────────────────────────────────────────────────────  │
+│  John Smith   Classic Haircut  Alex            10:30      CONFIRMED │
+│  Mike Brown   Beard & Shaving  Daniel          12:00      CONFIRMED │
+│  David Lee    Combo Package    Michael         14:30      CANCELLED │
+│                                                                      │
+╰──────────────────────────────────────────────────────────────────────╯
 ```
 
-This makes the booking engine resilient against race conditions and accidental duplicate bookings.
+> The browser-style previews above represent the product experience. Actual application screenshots can be placed in this section as the project evolves.
 
 ---
 
-# 🧠 Engineering Challenges & Solutions
+# 🎨 Design Language
 
-This project wasn't built around simple CRUD operations.
+## Gentlemen Lounge
 
-Several parts required solving real backend and database engineering problems.
+The entire interface follows a **premium dark aesthetic** inspired by modern luxury barbershops.
 
----
-
-## 🧩 Challenge #1 — Preventing Duplicate Bookings
-
-### Problem
-
-Two customers can theoretically attempt to book the same specialist and overlapping time at nearly the same moment.
-
-A simple frontend check is not enough.
-
-### Solution
-
-The backend performs server-side conflict validation and verifies the requested interval against existing appointments.
-
-```javascript
-const hasConflict = await Booking.exists({
-  barberId,
-  date,
-  startTime: { $lt: requestedEnd },
-  endTime: { $gt: requestedStart }
-});
-```
-
-If a conflict exists:
-
-```http
-409 Conflict
-```
-
-is returned instead of creating the appointment.
-
-### Result
-
-The booking engine remains protected even when multiple requests arrive simultaneously.
-
----
-
-# 🗄️ Challenge #2 — MongoDB Compound Indexes
-
-### Problem
-
-The booking collection needs efficient querying while avoiding invalid uniqueness constraints.
-
-A naive unique compound index can create unexpected conflicts when optional fields are missing.
-
-For example:
-
-```javascript
-{
-  tenantId: 1,
-  barberId: 1,
-  date: 1,
-  startTime: 1
-}
-```
-
-A normal unique index may not behave correctly when documents do not contain all indexed fields.
-
-### Solution
-
-A **partial index** can limit the index to documents that actually satisfy the required conditions.
-
-```javascript
-bookingSchema.index(
-  {
-    tenantId: 1,
-    barberId: 1,
-    date: 1,
-    startTime: 1
-  },
-  {
-    unique: true,
-    partialFilterExpression: {
-      barberId: { $exists: true },
-      date: { $exists: true },
-      startTime: { $exists: true }
-    }
-  }
-);
-```
-
-### Why this matters
-
-This allows MongoDB to enforce uniqueness where it is meaningful without unnecessarily constraining unrelated documents.
-
-> **Database constraints belong in the database layer — not only in the frontend.**
-
----
-
-# 🧱 Challenge #3 — Tenant Isolation
-
-### Problem
-
-In a SaaS application, authentication alone isn't enough.
-
-A valid user could potentially request another tenant's resource if the API only checks the user's role.
-
-### Solution
-
-Every protected request is evaluated against both:
+### Visual identity
 
 ```text
-User Identity
-      +
-Tenant Identity
-      +
-Resource Ownership
+        DARK
+         │
+         ▼
+   ┌──────────────┐
+   │              │
+   │  GENTLEMEN   │
+   │    LOUNGE    │
+   │              │
+   └──────────────┘
+         │
+         ├── Deep dark backgrounds
+         ├── Subtle gradient borders
+         ├── Amber / gold accents
+         ├── Premium cards
+         └── Smooth interactive elements
 ```
+
+### Accent Color
+
+**#FFB800 — Amber Gold**
+
+Used for important actions, booking buttons, highlights and key interface elements.
+
+The goal is a UI that feels:
+
+**Premium · Masculine · Modern · Focused**
+
+---
+
+# 🏠 Public Experience
+
+## Header
+
+The top navigation immediately communicates the state of the barbershop.
+
+```text
+TOPGUN
+
+🟢 Open Today • 9:00 — 21:00
+
+Services & Prices
+Barbers
+About Us
+Contacts
+
+[ Admin Panel ] [ Book Now ] [ Profile ]
+```
+
+Clients can immediately:
+
+* Check whether the barbershop is open
+* Browse services
+* Meet the barbers
+* Open their profile
+* Start booking
+
+---
+
+# ⚡ Hero Section
+
+The first screen focuses on one goal:
+
+> **Get the client booked.**
+
+The hero combines:
+
+* Strong headline
+* Quick benefits
+* Featured specialists
+* Popular services
+* Direct booking action
+
+### Quick Benefits
+
+**⚡ Instant 24/7 Online Booking**
+
+**✓ No Waiting Lines**
+
+### Popular Categories
+
+`Haircut` · `Beard & Shaving` · `Combo Package` · `Facial & Care`
+
+---
+
+# ✂️ Meet Our Specialists
+
+The barber section lets clients choose the right specialist before booking.
+
+### Filters
+
+```text
+[ ALL MASTERS ]     [ TOP RATED 4.9+ ]
+```
+
+### Barber Cards
+
+Every specialist card contains:
+
+* 📸 Photo
+* 👤 Name
+* 🏷️ Position
+* ✂️ Specialization
+* ⭐ Rating
+* 💬 Number of reviews
+* 🟢 Current availability
+* 📖 Portfolio
 
 Example:
 
-```javascript
-const booking = await Booking.findOne({
-  _id: bookingId,
-  tenantId: req.user.tenantId
-});
-```
-
-This ensures that:
-
 ```text
-Tenant A ❌ → Tenant B data
-Tenant B ❌ → Tenant A data
-Tenant A ✅ → Tenant A data
+┌─────────────────────────────┐
+│                             │
+│          BARBER             │
+│                             │
+│     Alex Johnson            │
+│     ★ 4.9 · 128 reviews     │
+│                             │
+│     Senior Barber           │
+│     Haircuts & Styling      │
+│                             │
+│     🟢 Available             │
+│                             │
+│     [ Book with Alex ]      │
+│     [ View Portfolio ]      │
+│                             │
+└─────────────────────────────┘
 ```
 
 ---
 
-# 🔐 Challenge #4 — Authentication & Authorization
+# 🗓️ Smart Days Off
 
-### Problem
+The booking experience automatically reflects each barber's schedule.
 
-Different users need completely different levels of access.
-
-### Solution
-
-The system combines **JWT authentication** with **role-based access control**.
+### Available
 
 ```text
-superadmin
-   │
-   ├── Full platform access
-   │
-admin
-   │
-   ├── Own tenant
-   │
-staff
-   │
-   └── Own schedule
-       
-client
-   │
-   └── Own bookings
+🟢 AVAILABLE
+
+[ Book with Alex ]
 ```
 
-Authorization is enforced at the API layer.
+### Day Off
+
+```text
+🔴 OFF TODAY
+
+[ Off Today ]
+```
+
+When a specialist has a day off, booking is automatically disabled for that day.
+
+This prevents clients from attempting to schedule appointments when the specialist isn't working.
 
 ---
 
-# 📧 Challenge #5 — Password Reset Reliability
+# 📖 Barber Lookbook
 
-Password recovery uses short-lived, single-use reset tokens.
+Every barber can showcase their work through a personal portfolio.
+
+Clients can open:
+
+**`View Portfolio (Lookbook)`**
+
+and explore examples of that specialist's work before booking.
+
+This turns the booking process into more than selecting a free time — clients can select a **style and specialist they actually like**.
+
+---
+
+# ✂️ Services & Prices
+
+The service catalog provides a clean overview of everything the barbershop offers.
+
+Example services include:
+
+* ✂️ Classic Haircut
+* 🧔 Beard & Shaving
+* 👨‍👦 Father & Son Combo
+* 💆 Scalp Detox & Massage
+* ⭐ Combo Packages
+* 🧴 Facial & Care
+
+Every service includes:
+
+```text
+SERVICE
+───────
+Description
+Price
+Duration
+```
+
+The duration is especially important because it is used when calculating available booking slots.
+
+---
+
+# 🔐 Authentication
+
+Customers can create an account and securely sign in using:
+
+```text
+Email
++
+Password
+```
+
+Authentication is handled with JWT-based access control.
+
+The platform supports different user roles and protected areas of the application.
+
+---
+
+# 🔑 Forgot Password
+
+The password recovery experience is designed to be simple for the client.
 
 ```text
 Forgot Password
-      ↓
-Generate Token
-      ↓
-Store Expiration
-      ↓
-Send Email
-      ↓
-15 Minute Lifetime
-      ↓
-Validate Token
-      ↓
-Update Password
-      ↓
-Invalidate Token
+       ↓
+Enter Email
+       ↓
+Receive Reset Email
+       ↓
+Open Secure Link
+       ↓
+Create New Password
+       ↓
+Account Restored ✓
 ```
 
-The reset process is intentionally isolated from the normal authentication flow.
+Reset links use a limited lifetime of **15 minutes**.
+
+The actual reset token is securely handled through the backend rather than exposing sensitive credentials.
 
 ---
 
-# 🤖 Challenge #6 — External Integrations
+# 👤 Client Profile
 
-The platform communicates with external services such as:
-
-* 📧 SMTP
-* 🤖 Telegram Bot API
-* 🍃 MongoDB Atlas
-
-External services can fail independently from the main application.
-
-Therefore, notification logic is separated from the core booking flow wherever possible.
-
-The goal is:
+The client profile is organized around three simple areas.
 
 ```text
-Booking succeeds
-      │
-      ├────► Telegram notification
-      │
-      └────► Email notification
+┌──────────────────────────────────────────┐
+│                                          │
+│   UPCOMING   │   HISTORY   │   MY INFO   │
+│                                          │
+└──────────────────────────────────────────┘
 ```
 
-A temporary notification failure should not necessarily destroy an otherwise valid booking.
+### 📅 Upcoming
+
+Shows current appointments with relevant booking details.
+
+### 🕘 History
+
+Displays previous visits including:
+
+* Service
+* Date
+* Status
+
+### 👤 My Info
+
+Personal account information.
 
 ---
 
-# 🖥️ Terminal / API Preview
+# 🤖 Telegram Connection
 
-The API can be tested directly from a terminal.
+Clients can connect their Telegram account directly from their profile.
 
-### Create a booking
-
-```bash
-curl -X POST http://localhost:5000/api/bookings \
-  -H "Authorization: Bearer <JWT_TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "serviceId": "64abc123",
-    "barberId": "64def456",
-    "date": "2026-08-20",
-    "startTime": "14:00"
-  }'
-```
-
-### Response
-
-```json
-{
-  "success": true,
-  "message": "Booking created successfully",
-  "booking": {
-    "_id": "66abc123",
-    "date": "2026-08-20",
-    "startTime": "14:00",
-    "endTime": "15:00",
-    "status": "confirmed"
-  }
-}
-```
-
-### Conflict example
-
-```json
-{
-  "success": false,
-  "message": "This time slot is already booked"
-}
-```
+### Never Miss Your Barber Appointment
 
 ```text
-HTTP 409 Conflict
+┌─────────────────────────────────────────┐
+│                                         │
+│   NEVER MISS YOUR                       │
+│   BARBER APPOINTMENT                    │
+│                                         │
+│   Receive important appointment         │
+│   notifications directly in Telegram.  │
+│                                         │
+│        [ CONNECT TELEGRAM ]             │
+│                                         │
+└─────────────────────────────────────────┘
 ```
+
+After connecting, Telegram can be used for appointment-related notifications such as:
+
+* ✓ Confirmation
+* 🔄 Changes
+* ❌ Cancellation
+* ⏰ Reminders
 
 ---
 
-# 🔑 Authentication Preview
+# 🎛️ Admin Control Panel
 
-### Login
+The admin panel transforms the platform from a booking page into a complete business management tool.
 
-```bash
-curl -X POST http://localhost:5000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "admin@example.com",
-    "password": "********"
-  }'
-```
+## 📊 KPI Analytics
 
-### Response
+The top of the dashboard provides an instant overview of business performance.
 
-```json
-{
-  "success": true,
-  "token": "eyJhbGciOiJIUzI1NiIs...",
-  "user": {
-    "id": "64abc123",
-    "role": "admin",
-    "tenantId": "tenant_123"
-  }
-}
+### EST. REVENUE
+
+Displays estimated revenue and average check.
+
+### TOTAL APPOINTMENTS
+
+Shows the total number of bookings.
+
+### CONFIRMATION RATE
+
+Displays the percentage of confirmed appointments.
+
+### TEAM & OFFERINGS
+
+Shows:
+
+```text
+8 Specialists
+14 Active Services
 ```
 
 ---
 
-# 🎨 Browser Mockups
+# 📅 Bookings Monitor
 
-Instead of displaying plain screenshots, the interface can be presented as browser-style product previews.
+The booking monitor gives administrators a complete overview of appointments.
 
-## 📊 Admin Dashboard
-
-```text
-╭──────────────────────────────────────────────────────────────╮
-│ ●  ●  ●     booking-saas.app/admin/dashboard                 │
-├──────────────────────────────────────────────────────────────┤
-│                                                              │
-│  Booking SaaS                         🔔  👤 Admin            │
-│                                                              │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐        │
-│  │ 📅 24    │ │ 👥 156   │ │ 💰 $2.4K │ │ ✂️ 12    │        │
-│  │ Bookings │ │ Clients  │ │ Revenue  │ │ Staff    │        │
-│  └──────────┘ └──────────┘ └──────────┘ └──────────┘        │
-│                                                              │
-│  Today's Schedule                                            │
-│  ─────────────────────────────────────────────────────────   │
-│                                                              │
-│  10:00  Alex Johnson       Haircut             Confirmed     │
-│  11:30  Michael Brown      Beard Trim          Confirmed     │
-│  13:00  Daniel Smith       Haircut + Beard     Pending       │
-│                                                              │
-╰──────────────────────────────────────────────────────────────╯
-```
-
-## 📅 Booking Wizard
+### Filters
 
 ```text
-╭──────────────────────────────────────────────────────────────╮
-│ ●  ●  ●     booking-saas.app/book                            │
-├──────────────────────────────────────────────────────────────┤
-│                                                              │
-│                  BOOK YOUR APPOINTMENT                       │
-│                                                              │
-│       ① Service  ─── ② Specialist ─── ③ Time                │
-│                                                              │
-│  ┌──────────────────────────────────────────────────────┐    │
-│  │ ✂️ Premium Haircut                                   │    │
-│  │                                                      │    │
-│  │ 60 min                              $25               │    │
-│  │                                                      │    │
-│  │ Professional haircut and styling                     │    │
-│  └──────────────────────────────────────────────────────┘    │
-│                                                              │
-│                   [ Continue → ]                             │
-│                                                              │
-╰──────────────────────────────────────────────────────────────╯
+[ Search Client / Phone / Service ]
+
+[ All Dates ] [ All Statuses ] [ Newest ]
+
+                                      [ Export ]
 ```
 
-## 👨‍💼 Staff Management
+### Booking Table
 
-```text
-╭──────────────────────────────────────────────────────────────╮
-│ ●  ●  ●     booking-saas.app/admin/staff                     │
-├──────────────────────────────────────────────────────────────┤
-│                                                              │
-│  Staff Management                         [ + Add Staff ]    │
-│                                                              │
-│  ┌────────┬──────────────┬────────────┬──────────┬────────┐ │
-│  │ Avatar │ Name         │ Services   │ Schedule │ Status │ │
-│  ├────────┼──────────────┼────────────┼──────────┼────────┤ │
-│  │  👨    │ Alex Johnson │ 5 services │ Mon-Sat  │ 🟢     │ │
-│  │  👨    │ Daniel Smith │ 3 services │ Mon-Fri  │ 🟢     │ │
-│  │  👨    │ Mark Wilson  │ 4 services │ Tue-Sat  │ 🔴     │ │
-│  └────────┴──────────────┴────────────┴──────────┴────────┘ │
-│                                                              │
-╰──────────────────────────────────────────────────────────────╯
-```
+| Client Details | Service         | Specialist | Date & Time      | Price | Status       |
+| -------------- | --------------- | ---------- | ---------------- | ----- | ------------ |
+| John Smith     | Classic Haircut | Alex       | Today · 10:30    | $25   | 🟢 CONFIRMED |
+| Mike Brown     | Beard & Shaving | Daniel     | Today · 12:00    | $18   | 🟢 CONFIRMED |
+| David Lee      | Combo Package   | Michael    | Tomorrow · 14:30 | $40   | 🔴 CANCELLED |
 
-### 📸 Real Screenshots
-
-When screenshots are available, replace the mockups above with actual application previews:
-
-```markdown
-<p align="center">
-  <img src="./screenshots/dashboard.png" width="900" alt="Admin Dashboard">
-</p>
-
-<p align="center">
-  <img src="./screenshots/booking.png" width="900" alt="Booking Wizard">
-</p>
-```
+Administrators can update booking statuses directly from the table.
 
 ---
 
-# 📁 Project Structure
+# 🧑‍💼 Barber Team
+
+The admin panel also provides complete staff management.
+
+Administrators can manage:
+
+* Barber profiles
+* Specializations
+* Services
+* Availability
+* Working days
+* Days off
+* Portfolio content
+
+This makes the team section a central place for managing the people behind the business.
+
+---
+
+# 🧰 Services Management
+
+Administrators can manage the complete service catalog.
+
+Each service can have:
 
 ```text
-booking-saas/
-│
-├── client/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── layouts/
-│   │   ├── hooks/
-│   │   ├── services/
-│   │   ├── context/
-│   │   └── App.jsx
-│   │
-│   ├── public/
-│   └── package.json
-│
-├── server/
-│   ├── controllers/
-│   ├── models/
-│   ├── routes/
-│   ├── middleware/
-│   ├── services/
-│   ├── utils/
-│   ├── config/
-│   ├── bot/
-│   ├── server.js
-│   └── package.json
-│
-├── screenshots/
-│   ├── dashboard.png
-│   ├── booking.png
-│   ├── staff.png
-│   └── services.png
-│
-├── .gitignore
-└── README.md
+Name
+Description
+Price
+Duration
+```
+
+Changes to the catalog are reflected in the customer-facing booking experience.
+
+---
+
+# 🧭 Product Flow
+
+The complete customer journey can be summarized in one flow:
+
+```mermaid
+flowchart LR
+
+    A["🏠 Landing Page"]
+    B["✂️ Choose Service"]
+    C["👨‍💼 Choose Barber"]
+    D["📅 Choose Date"]
+    E["⏰ Choose Time"]
+    F["✅ Confirm Booking"]
+    G["🤖 Telegram Notification"]
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+```
+
+And the business journey:
+
+```mermaid
+flowchart LR
+
+    A["🎛️ Admin Dashboard"]
+    B["📅 Monitor Bookings"]
+    C["👨‍💼 Manage Team"]
+    D["✂️ Manage Services"]
+    E["📊 Track KPIs"]
+
+    A --> B
+    A --> C
+    A --> D
+    A --> E
 ```
 
 ---
 
 # 🛠️ Tech Stack
 
+Only the technologies used to build the platform.
+
 ### Frontend
 
-* ⚛️ React 18
-* ⚡ Vite
-* 🎨 Tailwind CSS
-* 📡 Axios
-* 🧩 Lucide React
+* ⚛️ **React 18**
+* ⚡ **Vite**
+* 🎨 **Tailwind CSS**
+* 📡 **Axios**
+* 🧩 **Lucide React**
 
 ### Backend
 
-* 🟢 Node.js
-* 🚂 Express.js
-* 🔐 JWT
-* 🔒 bcryptjs
-* 📧 Nodemailer
+* 🟢 **Node.js**
+* 🚂 **Express.js**
+* 🔐 **JWT**
+* 🔒 **bcryptjs**
+* 📧 **Nodemailer**
 
 ### Database
 
-* 🍃 MongoDB Atlas
-* 🐍 Mongoose
+* 🍃 **MongoDB Atlas**
+* 🐍 **Mongoose**
 
 ### Integrations
 
-* 🤖 Telegram Bot API
-* 📧 SMTP
+* 🤖 **Telegram Bot API**
+* 📧 **SMTP**
 
 ### Deployment
 
-* ▲ Vercel — Frontend
-* 🚀 Render — Backend
-* 🍃 MongoDB Atlas — Database
+* ▲ **Vercel** — Frontend
+* 🚀 **Render** — Backend
+* 🍃 **MongoDB Atlas** — Database
 
 ---
 
-# ⚙️ Environment Variables
+# 💡 Built Around Real Business Needs
 
-Create a `.env` file inside the backend directory:
-
-```env
-PORT=5000
-
-MONGO_URI=your_mongodb_connection_string
-
-JWT_SECRET=your_jwt_secret_key
-
-# Superadmin
-ADMIN_EMAIL=admin@gmail.com
-ADMIN_PASSWORD=your_admin_password
-
-# SMTP / Nodemailer
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USER=your_email@gmail.com
-EMAIL_PASS=your_app_password
-
-# Telegram
-TELEGRAM_BOT_TOKEN=your_telegram_bot_token
-```
-
-> ⚠️ Never commit `.env` files or production secrets to GitHub.
-
-Add them to `.gitignore`:
-
-```gitignore
-.env
-node_modules/
-dist/
-```
-
----
-
-# 🚀 Getting Started
-
-## 1. Clone the repository
-
-```bash
-git clone https://github.com/your-username/booking-saas.git
-
-cd booking-saas
-```
-
-## 2. Install backend dependencies
-
-```bash
-cd server
-npm install
-```
-
-## 3. Configure environment variables
-
-Create:
+The platform was designed around actual barbershop workflows rather than isolated technical features.
 
 ```text
-server/.env
+                    CLIENT
+                      │
+                      ▼
+              Find a Service
+                      │
+                      ▼
+               Choose a Barber
+                      │
+                      ▼
+              Find Available Time
+                      │
+                      ▼
+                 Book Visit
+                      │
+                      ▼
+             Receive Notification
+                      │
+                      ▼
+                  VISIT ✓
+
+
+                    BUSINESS
+                      │
+                      ▼
+               Monitor Bookings
+                      │
+                      ▼
+                Manage Team
+                      │
+                      ▼
+              Manage Services
+                      │
+                      ▼
+                 Track KPIs
 ```
 
-and configure your MongoDB, JWT, SMTP and Telegram credentials.
-
-## 4. Start the backend
-
-```bash
-npm run dev
-```
-
-Backend:
-
-```text
-http://localhost:5000
-```
-
-## 5. Install frontend dependencies
-
-Open another terminal:
-
-```bash
-cd client
-npm install
-```
-
-## 6. Start the frontend
-
-```bash
-npm run dev
-```
-
-Frontend:
-
-```text
-http://localhost:5173
-```
+Every part of the interface is built around keeping this flow **simple, visual and fast**.
 
 ---
 
-# 🔌 API Overview
+# 🖤 The Result
 
-```text
-/api/auth
-/api/users
-/api/tenants
-/api/barbers
-/api/services
-/api/bookings
-/api/dashboard
-```
+**TopGun Barbershop** brings the entire customer and business experience into one platform.
 
-The API follows a REST-oriented architecture with protected endpoints for authenticated users.
+### For clients
 
----
+**Discover → Choose → Book → Get Notified → Visit**
 
-# 🔐 Security
+### For the business
 
-The application includes:
-
-* 🔑 JWT authentication
-* 🔒 bcrypt password hashing
-* 👥 Role-based access control
-* 🏢 Tenant-level isolation
-* ⏱️ Expiring password-reset tokens
-* 🛡️ Backend authorization
-* 🚫 Double-booking prevention
-* 🔐 Environment-based secrets
-
-For production environments, additional measures such as HTTPS, rate limiting, request validation, secure token storage and restrictive CORS configuration should be enabled.
-
----
-
-# 📈 Roadmap
-
-* [ ] 💳 Online payments
-* [ ] 📊 Advanced analytics
-* [ ] 📱 PWA / Mobile application
-* [ ] 🔔 Push notifications
-* [ ] 📆 Google Calendar integration
-* [ ] 💬 WhatsApp notifications
-* [ ] ⭐ Customer reviews
-* [ ] 🎁 Loyalty system
-* [ ] 🧾 Automated receipts
-* [ ] 🌍 Multi-language support
-* [ ] 🏪 Public business pages
-* [ ] 📈 Advanced staff analytics
-
----
-
-# 🧪 Engineering Highlights
-
-This project demonstrates practical experience with:
-
-```text
-┌─────────────────────────────────────────────┐
-│              FULL-STACK ENGINEERING         │
-├─────────────────────────────────────────────┤
-│                                             │
-│  ⚛️  React & Component Architecture         │
-│  🚂  REST API Design                        │
-│  🔐  Authentication & Authorization         │
-│  🏢  Multi-Tenant Architecture              │
-│  🍃  MongoDB Data Modeling                   │
-│  🧩  Compound & Partial Indexes             │
-│  📅  Scheduling & Availability Logic         │
-│  🛡️  Conflict Detection                    │
-│  📧  Email Integration                      │
-│  🤖  Telegram Bot Integration               │
-│  ☁️  Cloud Deployment                       │
-│                                             │
-└─────────────────────────────────────────────┘
-```
-
-The project goes beyond basic CRUD by solving problems related to **data isolation, scheduling, database constraints, authentication, external integrations and reliability**.
-
----
-
-# 📊 Project Complexity
-
-```text
-Frontend
-████████████████████░░  85%
-
-Backend
-█████████████████████░  90%
-
-Database
-██████████████████░░░  80%
-
-Authentication
-███████████████████░░  85%
-
-Booking Logic
-█████████████████████  95%
-
-Integrations
-████████████████░░░░░  70%
-```
-
-> The goal is not to maximize the number of features, but to build each core feature around real business requirements.
-
----
-
-# 🤝 Contributing
-
-Contributions, suggestions and improvements are welcome.
-
-```bash
-git checkout -b feature/amazing-feature
-
-git add .
-
-git commit -m "feat: add amazing feature"
-
-git push origin feature/amazing-feature
-```
-
-Then open a Pull Request.
-
----
-
-# 📄 License
-
-This project is available under the **MIT License**.
+**Monitor → Manage → Organize → Track → Grow**
 
 ---
 
 <div align="center">
 
-## ✂️ Built for modern service businesses.
+## ✂️ TOPGUN BARBERSHOP
 
-### Book. Manage. Automate. Grow. 🚀
+### **Your Style. Your Barber. Your Time.**
 
-**Full-Stack MERN · Multi-Tenant · Scalable · Production-Oriented**
+<br/>
+
+**Premium booking experience for modern barbershops.**
+
+<br/>
+
+`React 18` · `Vite` · `Tailwind CSS` · `Node.js` · `Express.js` · `MongoDB Atlas`
 
 </div>
+
